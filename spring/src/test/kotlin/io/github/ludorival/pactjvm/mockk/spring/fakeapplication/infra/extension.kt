@@ -1,4 +1,4 @@
-package io.github.ludorival.pactjvm.mockk.fakeapplication.infra
+package io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra
 
 import org.springframework.http.ResponseEntity
 

@@ -1,6 +1,6 @@
-package io.github.ludorival.pactjvm.mockk.fakeapplication.infra.shoppingservice
+package io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice
 
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.safeValue
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.safeValue
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -54,7 +54,7 @@ class ShoppingServiceClient(private val restTemplate: RestTemplate) {
                 .build(shoppingList.userId, shoppingList.id),
             item,
             ShoppingList.Item::class.java
-        )
+        ) ?: error("expect a non null shopping list item")
     }
 
 

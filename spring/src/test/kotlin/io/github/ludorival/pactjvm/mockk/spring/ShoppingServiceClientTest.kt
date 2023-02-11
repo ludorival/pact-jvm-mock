@@ -1,28 +1,26 @@
-package io.github.ludorival.pactjvm.mockk
+package io.github.ludorival.pactjvm.mockk.spring
 
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.shoppingservice.ShoppingList
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.shoppingservice.ShoppingServiceClient
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserProfile
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserServiceClient
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingList
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingServiceClient
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserServiceClient
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
-@ExtendWith(PactExtension::class)
 class ShoppingServiceClientTest {
 
     @MockK
@@ -36,25 +34,6 @@ class ShoppingServiceClientTest {
 
     @BeforeEach
     fun setUp() = MockKAnnotations.init(this)
-
-//    @BeforeEach
-//    fun setupPact() {
-//        pact.setPactDirectory("src/test/resources/pact")
-//        pact.setDefaultObjectMapper(
-//            Jackson2ObjectMapperBuilder().serializerByType(
-//                LocalDateTime::class.java, serializerAsDefault<LocalDateTime>("2023-01-01-00:00:00")
-//            ).serializerByType(
-//                UUID::class.java, serializerWith<UUID> {
-//                    it.writeString(
-//                        when (it.outputContext.currentName) {
-//                            "transaction_id" -> "3c2f4340-67a3-4639-bb6f-a146103f3dbd"
-//                            else             -> "478218ec-c7f2-4142-b3b2-1aea8e8a7c2d"
-//                        }
-//                    )
-//                }
-//            ).build()
-//        )
-//    }
 
     @Test
     fun `should create a shopping list`() {
@@ -87,7 +66,7 @@ class ShoppingServiceClientTest {
             )
             every {
                 restTemplate.getForEntity(
-                    match<String> { it.contains("shopping-service/user/${USER_ID}/list") },
+                    match<String> { it.contains("shopping-service/user/$USER_ID/list") },
                     ShoppingList::class.java
                 )
             } returns ResponseEntity.ok(
@@ -137,7 +116,6 @@ class ShoppingServiceClientTest {
                     match<URI> { it.path.contains("shopping-service") },
                 )
             } answers {
-
             }
         } `when` {
             shoppingServiceClient.getAllShoppingLists(USER_ID)
@@ -146,6 +124,42 @@ class ShoppingServiceClientTest {
         } then {
             verify {
                 restTemplate.delete(any<URI>())
+            }
+        }
+    }
+
+    @Test
+    fun `should update a shopping list`() {
+        given {
+            every {
+                restTemplate.exchange(
+                    match<URI> { it.path.contains("shopping-service") },
+                    HttpMethod.GET,
+                    any(),
+                    any<ParameterizedTypeReference<List<ShoppingList>>>()
+                )
+            } returns ResponseEntity.ok(
+                listOf(
+                    PREFERRED_SHOPPING_LIST,
+                    SHOPPING_LIST_TO_DELETE
+                )
+            )
+            every {
+                restTemplate.put(
+                    match<URI> { it.path.contains("shopping-service") },
+                    any()
+                )
+            } answers {
+            }
+        } `when` {
+            shoppingServiceClient.getAllShoppingLists(USER_ID)
+        } and {
+            shoppingServiceClient.updateShoppingList(it.last().copy(title = "My updated shopping list"))
+        } then {
+            verify {
+                restTemplate.put(
+                    any<URI>(),
+                    match<Map<String, String>> { it.get("name") == "My updated shopping list" })
             }
         }
     }

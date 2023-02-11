@@ -1,27 +1,25 @@
-package io.github.ludorival.pactjvm.mockk
+package io.github.ludorival.pactjvm.mockk.spring
 
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.shoppingservice.ShoppingList
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.shoppingservice.ShoppingServiceClient
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserPreferences
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserProfile
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserServiceClient
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingList
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingServiceClient
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserPreferences
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserServiceClient
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
-@ExtendWith(PactExtension::class)
 class UserServiceClientTest {
 
     @MockK
@@ -35,25 +33,6 @@ class UserServiceClientTest {
 
     @BeforeEach
     fun setUp() = MockKAnnotations.init(this)
-
-//    @BeforeEach
-//    fun setupPact() {
-//        pact.setPactDirectory("src/test/resources/pact")
-//        pact.setDefaultObjectMapper(
-//            Jackson2ObjectMapperBuilder().serializerByType(
-//                LocalDateTime::class.java, serializerAsDefault<LocalDateTime>("2023-01-01-00:00:00")
-//            ).serializerByType(
-//                UUID::class.java, serializerWith<UUID> {
-//                    it.writeString(
-//                        when (it.outputContext.currentName) {
-//                            "transaction_id" -> "3c2f4340-67a3-4639-bb6f-a146103f3dbd"
-//                            else             -> "478218ec-c7f2-4142-b3b2-1aea8e8a7c2d"
-//                        }
-//                    )
-//                }
-//            ).build()
-//        )
-//    }
 
     @Test
     fun `should get the user profile`() {

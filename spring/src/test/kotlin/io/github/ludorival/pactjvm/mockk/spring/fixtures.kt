@@ -1,8 +1,8 @@
-package io.github.ludorival.pactjvm.mockk
+package io.github.ludorival.pactjvm.mockk.spring
 
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.shoppingservice.ShoppingList
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserPreferences
-import io.github.ludorival.pactjvm.mockk.fakeapplication.infra.userservice.UserProfile
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingList
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserPreferences
+import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
 
 const val USER_ID = 123L
 const val PREFERRED_SHOPPING_ID = 1L
