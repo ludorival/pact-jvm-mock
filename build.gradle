@@ -1,0 +1,129 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.7.21'
+    id 'maven-publish'
+    id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version "1.1.0"
+    id 'com.palantir.git-version' version '0.15.0'
+}
+
+def publish(Project project) {
+
+
+    publishing {
+        publications {
+            "${project.name}"(MavenPublication) {
+                def name = "pact-jvm-mockk-${project.name.replace("mockk", "core")}"
+                artifactId = name
+                from components.java
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    name = name
+                    description = "Pact JVM Mock - Leverage existing Mocks (${project.name})"
+                    url = 'https://github.com/ludorival/pact-jvm-mock'
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'https://github.com/ludorival/pact-jvm-mock/blob/main/LICENSE'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'ludorival'
+                            name = 'Ludovic Dorival'
+                            email = 'ludorival@gmail.com'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:git://github.com/ludorival/pact-jvm-mock.git'
+                        developerConnection = 'scm:git:ssh://github.com/ludorival/pact-jvm-mock.git'
+                        url = 'https://github.com/ludorival/pact-jvm-mock'
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                name = "OSSRH"
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                credentials {
+                    username = findProperty("maven.username") ?: System.getenv("OSSRH_USERNAME")
+                    password = findProperty("maven.password") ?: System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD")
+                }
+
+            }
+        }
+    }
+
+    signing {
+        sign publishing.publications."${project.name}"
+    }
+
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = findProperty("maven.username") ?: System.getenv("OSSRH_USERNAME")
+            password = findProperty("maven.password") ?: System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD")
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+allprojects {
+
+    apply {
+        plugin("kotlin")
+    }
+
+    group = "io.github.ludorival"
+    version = gitVersion().replace(".dirty", "-SNAPSHOT")
+
+    repositories {
+        mavenCentral()
+    }
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    test {
+        useJUnitPlatform()
+    }
+
+}
+
+
+project(":mockk") {
+
+    publish(project)
+    dependencies {
+        implementation("io.mockk:mockk:1.13.4")
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+        implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
+    }
+}
+
+project(":spring") {
+    publish(project)
+    dependencies {
+        api(project(":mockk"))
+        implementation("io.mockk:mockk:1.13.4")
+        implementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+        testImplementation("io.github.ludorival:kotlin-tdd:2.0.4.beta")
+        implementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+        implementation "org.jetbrains.kotlin:kotlin-stdlib"
+        implementation("org.springframework:spring-web:6.0.3")
+    }
+}

@@ -204,6 +204,33 @@ every {
 }
 ```
 
+### Make your contract deterministic
+
+If the Pact contracts change everytime tests have launched,
+it makes overload your CICD by verifying the contracts upon the providers whereas nothing functional as changed.
+To make your contract deterministic, you will need to provide a custom serializer for the type you want to be invariant.
+
+For example, let's say you have a date which will be generated at each test, you can pass a custom value
+for `determineConsumerFromUrl`
+
+```kotlin
+object MyPactMock : SpringPactMockkExtension(provider = "my-service",
+    determineConsumerFromUrl = {
+        ConsumerMetaData(it.getConsumerName(),
+            customObjectMapper = Jackson2ObjectMapperBuilder().serializerByType(
+                LocalDate::class.java,
+                object : JsonSerializer<LocalDate>() {
+                    override fun serialize(value: LocalDate?, gen: JsonGenerator, serializers: SerializerProvider?) {
+                        // all LocalDate will always have the same date in the contract
+                        gen.writeString("2023-01-01")
+                    }
+
+                }).build()
+        )
+    })
+
+```
+
 ## Contributing
 
 pact-jvm-mock is an open-source project and contributions are welcome! If you're interested in contributing, please
