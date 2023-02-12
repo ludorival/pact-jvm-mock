@@ -13,7 +13,11 @@ data class PactWithObjectMapper(val pact: Pact, private val objectMapper: Object
         consumerMetaData.customObjectMapper
     )
 
-    val pactFile get() = "${pact.consumer.name}-${pact.provider.name}.json"
+    fun addInteraction(interaction: Pact.Interaction): PactWithObjectMapper {
+        return copy(pact = pact.copy(interactions = pact.interactions + interaction))
+    }
+
+    private val pactFile get() = "${pact.consumer.name}-${pact.provider.name}.json"
     internal fun write(directory: String) {
         if (pact.interactions.isEmpty()) return
         File(directory, pactFile).apply {
@@ -21,7 +25,7 @@ data class PactWithObjectMapper(val pact: Pact, private val objectMapper: Object
             if (!exists()) {
                 Files.createDirectories(path)
             }
-            val json = objectMapper.valueToTree<JsonNode>(pact)
+            val json = objectMapper.valueToTree<JsonNode>(pact.copy(interactions = pact.interactions.distinct()))
             writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(json))
         }
     }

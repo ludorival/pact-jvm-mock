@@ -26,9 +26,7 @@ object PactMockk {
     private fun addInteraction(consumerMetaData: ConsumerMetaData, interaction: Pact.Interaction) {
         val pactWithObjectMapper =
             pacts.getOrPut(consumerMetaData.name) { PactWithObjectMapper(provider, consumerMetaData) }
-        val (pact) = pactWithObjectMapper
-        val interactions = (pact.interactions + interaction).distinct()
-        pacts[consumerMetaData.name] = pactWithObjectMapper.copy(pact = pact.copy(interactions = interactions))
+        pacts[consumerMetaData.name] = pactWithObjectMapper.addInteraction(interaction)
     }
 
     internal fun <T> intercept(call: Call, response: T) {
