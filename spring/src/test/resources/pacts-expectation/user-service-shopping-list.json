@@ -1,0 +1,59 @@
+{
+  "provider": {
+    "name": "shopping-list"
+  },
+  "consumer": {
+    "name": "user-service"
+  },
+  "interactions": [
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "GET",
+        "path": "/user-service/v1/user/123",
+        "query": null,
+        "headers": null,
+        "body": null
+      },
+      "response": {
+        "body": {
+          "id": 123,
+          "name": "User name",
+          "email": "user@email.com",
+          "userPreferences": {
+            "preferredShoppingListId": 1
+          }
+        },
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "PUT",
+        "path": "/user-service/v1/user/123",
+        "query": null,
+        "headers": null,
+        "body": {
+          "preferredShoppingListId": 1
+        }
+      },
+      "response": {
+        "body": null,
+        "status": 200,
+        "headers": {}
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    },
+    "pactJvm": {
+      "version": "4.0.10"
+    }
+  }
+}

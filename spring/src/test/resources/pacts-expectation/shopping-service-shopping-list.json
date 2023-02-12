@@ -1,0 +1,218 @@
+{
+  "provider": {
+    "name": "shopping-list"
+  },
+  "consumer": {
+    "name": "shopping-service"
+  },
+  "interactions": [
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "GET",
+        "path": "/shopping-service/user/123",
+        "query": "limit=30",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": null
+      },
+      "response": {
+        "body": [
+          {
+            "id": 1,
+            "title": "My Favorite Shopping list",
+            "userId": 123,
+            "items": [
+              {
+                "id": 1,
+                "name": "Apple",
+                "quantity": 2
+              },
+              {
+                "id": 2,
+                "name": "Banana",
+                "quantity": 2
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "My Shopping list to delete",
+            "userId": 123,
+            "items": [
+              {
+                "id": 1,
+                "name": "Chicken",
+                "quantity": 2
+              },
+              {
+                "id": 2,
+                "name": "Beed",
+                "quantity": 1
+              }
+            ]
+          }
+        ],
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "DELETE",
+        "path": "/shopping-service/user/123/list/2",
+        "query": null,
+        "headers": null,
+        "body": null
+      },
+      "response": {
+        "body": null,
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "PUT",
+        "path": "/shopping-service/user/123/list/2",
+        "query": null,
+        "headers": null,
+        "body": {
+          "name": "My updated shopping list"
+        }
+      },
+      "response": {
+        "body": null,
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "GET",
+        "path": "/shopping-service/user/123/list/1",
+        "query": null,
+        "headers": null,
+        "body": null
+      },
+      "response": {
+        "body": {
+          "id": 1,
+          "title": "My Favorite Shopping list",
+          "userId": 123,
+          "items": [
+            {
+              "id": 1,
+              "name": "Apple",
+              "quantity": 2
+            },
+            {
+              "id": 2,
+              "name": "Banana",
+              "quantity": 2
+            }
+          ]
+        },
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "PATCH",
+        "path": "/shopping-service/user/123/list/1",
+        "query": null,
+        "headers": null,
+        "body": {
+          "id": 2,
+          "name": "Banana",
+          "quantity": 3
+        }
+      },
+      "response": {
+        "body": {
+          "id": 2,
+          "name": "Banana",
+          "quantity": 3
+        },
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "POST",
+        "path": "/shopping-service/user/123",
+        "query": null,
+        "headers": null,
+        "body": {
+          "title": "My Shopping list"
+        }
+      },
+      "response": {
+        "body": {
+          "id": 1,
+          "title": "My Shopping list",
+          "userId": 123,
+          "items": []
+        },
+        "status": 200,
+        "headers": {}
+      }
+    },
+    {
+      "providerStates": null,
+      "description": "",
+      "request": {
+        "method": "POST",
+        "path": "/shopping-service/user/123",
+        "query": null,
+        "headers": null,
+        "body": {
+          "title": "My shopping list"
+        }
+      },
+      "response": {
+        "body": {
+          "id": 1,
+          "title": "My Favorite Shopping list",
+          "userId": 123,
+          "items": [
+            {
+              "id": 1,
+              "name": "Apple",
+              "quantity": 2
+            },
+            {
+              "id": 2,
+              "name": "Banana",
+              "quantity": 2
+            }
+          ]
+        },
+        "status": 200,
+        "headers": {}
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    },
+    "pactJvm": {
+      "version": "4.0.10"
+    }
+  }
+}
