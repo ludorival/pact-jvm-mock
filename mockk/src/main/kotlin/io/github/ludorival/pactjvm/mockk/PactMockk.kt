@@ -24,15 +24,26 @@ object PactMockk {
 
     private fun getAdapterFor(call: Call) = adapters.find { it.support(call) }
     private fun addInteraction(consumerMetaData: ConsumerMetaData, interaction: Pact.Interaction) {
-        val (pact) = pacts.getOrPut(consumerMetaData.name) { PactWithObjectMapper(provider, consumerMetaData) }
-        pact.addInteraction(interaction)
+        val pactWithObjectMapper =
+            pacts.getOrPut(consumerMetaData.name) { PactWithObjectMapper(provider, consumerMetaData) }
+        val (pact) = pactWithObjectMapper
+        val interactions = (pact.interactions + interaction).distinct()
+        pacts[consumerMetaData.name] = pactWithObjectMapper.copy(pact = pact.copy(interactions = interactions))
     }
 
     internal fun <T> intercept(call: Call, response: T) {
         val adapter = getAdapterFor(call)
         if (adapter != null) {
             val (consumerMetaData, interaction) = adapter.buildInteraction(call, response)
-            addInteraction(consumerMetaData, interaction)
+            addInteraction(
+                consumerMetaData,
+                interaction.copy(
+                    description = interaction.description.ifEmpty {
+                        ExtractInteractionDescription.getDescriptionFromStackTrace()
+                            ?: interaction.description
+                    }
+                )
+            )
         }
     }
 }

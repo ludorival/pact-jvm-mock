@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode
 data class Pact(
     val provider: Pacticipant,
     val consumer: Pacticipant,
-    val interactions: MutableSet<Interaction> = mutableSetOf(),
+    val interactions: List<Interaction> = emptyList(),
     val metadata: MetaData,
 
     ) {
@@ -16,12 +16,6 @@ data class Pact(
         Pacticipant(consumerMetaData.name),
         metadata = consumerMetaData.pactMetaData,
     )
-
-
-    fun addInteraction(interaction: Interaction): Boolean {
-        return interactions.add(interaction)
-    }
-
 
     data class Pacticipant(val name: String)
 
