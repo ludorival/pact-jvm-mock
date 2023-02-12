@@ -4,13 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializerProvider
-import io.github.ludorival.pactjvm.mockk.Contract
-import io.mockk.CapturingSlot
-import io.mockk.MockKMatcherScope
-import io.mockk.MockKStubScope
-import io.mockk.slot
 import org.junit.jupiter.api.extension.ExtensionContext
-import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 
 class Pact(private val extensionContext: ExtensionContext) {
@@ -70,7 +64,7 @@ class Pact(private val extensionContext: ExtensionContext) {
 //    ) {
 //
 //        infix fun  willRespondWith(block: StubInteraction<T>.(Contract.Interaction.Request<T>) -> T) {
-//            stubScope answers {
+//            stubScope willRespondWith {
 //                val request = builder.buildRequest<T>()
 //                val response = block(request)
 //                val pactToWrites = extensionContext.getPactToWrites()

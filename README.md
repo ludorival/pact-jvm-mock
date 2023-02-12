@@ -54,10 +54,10 @@ Or if you are using Maven:
 Next, you'll need to configure the library to use your existing [Mockk](https://github.com/mockk/mockk) mocks.
 
 For example, let's say you want to leverage existing mock of Spring RestTemplate.
-With JUnit 5, you can create an extension by inheriting `SpringPactMock`. Here is a minimal example:
+With JUnit 5, you can create an extension by inheriting `SpringPactMockkExtension`. Here is a minimal example:
 
 ```kotlin
-object MyPactMock : SpringPactMock(provider = "my-service") 
+object MyPactMock : SpringPactMockkExtension(provider = "my-service") 
 ```
 
 > By default, the contracts will be written in the src/test/pacts folder.

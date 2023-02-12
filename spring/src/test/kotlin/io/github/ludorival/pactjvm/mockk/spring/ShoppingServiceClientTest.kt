@@ -7,6 +7,8 @@ import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingse
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingServiceClient
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserServiceClient
+import io.github.ludorival.pactjvm.mockk.willRespond
+import io.github.ludorival.pactjvm.mockk.willRespondWith
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -15,12 +17,14 @@ import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
+@ExtendWith(ShoppingPactExtension::class)
 class ShoppingServiceClientTest {
 
     @MockK
@@ -44,7 +48,7 @@ class ShoppingServiceClientTest {
                     any(),
                     eq(ShoppingList::class.java)
                 )
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 EMPTY_SHOPPING_LIST
             )
         } `when` {
@@ -61,7 +65,7 @@ class ShoppingServiceClientTest {
         given {
             every {
                 restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 USER_PROFILE
             )
             every {
@@ -69,7 +73,7 @@ class ShoppingServiceClientTest {
                     match<String> { it.contains("shopping-service/user/$USER_ID/list") },
                     ShoppingList::class.java
                 )
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 PREFERRED_SHOPPING_LIST
             )
             every {
@@ -78,7 +82,7 @@ class ShoppingServiceClientTest {
                     any(),
                     eq(ShoppingList.Item::class.java)
                 )
-            } answers {
+            } willRespondWith {
                 val item = arg<ShoppingList.Item>(1)
                 item
             }
@@ -105,7 +109,7 @@ class ShoppingServiceClientTest {
                     any(),
                     any<ParameterizedTypeReference<List<ShoppingList>>>()
                 )
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 listOf(
                     PREFERRED_SHOPPING_LIST,
                     SHOPPING_LIST_TO_DELETE
@@ -115,7 +119,7 @@ class ShoppingServiceClientTest {
                 restTemplate.delete(
                     match<URI> { it.path.contains("shopping-service") },
                 )
-            } answers {
+            } willRespondWith {
             }
         } `when` {
             shoppingServiceClient.getAllShoppingLists(USER_ID)
@@ -138,7 +142,7 @@ class ShoppingServiceClientTest {
                     any(),
                     any<ParameterizedTypeReference<List<ShoppingList>>>()
                 )
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 listOf(
                     PREFERRED_SHOPPING_LIST,
                     SHOPPING_LIST_TO_DELETE
@@ -149,7 +153,7 @@ class ShoppingServiceClientTest {
                     match<URI> { it.path.contains("shopping-service") },
                     any()
                 )
-            } answers {
+            } willRespondWith {
             }
         } `when` {
             shoppingServiceClient.getAllShoppingLists(USER_ID)

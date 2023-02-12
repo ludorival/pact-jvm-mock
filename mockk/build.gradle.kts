@@ -18,7 +18,6 @@ dependencies {
     testImplementation("io.github.ludorival:kotlin-tdd:2.0.4.beta")
     implementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     implementation(kotlin("stdlib-jdk8"))
-    testImplementation("org.springframework:spring-web:6.0.3")
 }
 
 tasks.getByName<Test>("test") {

@@ -8,6 +8,8 @@ import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingse
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserPreferences
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserServiceClient
+import io.github.ludorival.pactjvm.mockk.willRespond
+import io.github.ludorival.pactjvm.mockk.willRespondWith
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -16,10 +18,12 @@ import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
+@ExtendWith(ShoppingPactExtension::class)
 class UserServiceClientTest {
 
     @MockK
@@ -39,7 +43,7 @@ class UserServiceClientTest {
         given {
             every {
                 restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 USER_PROFILE
             )
         } `when` {
@@ -61,13 +65,13 @@ class UserServiceClientTest {
                     any(),
                     eq(ShoppingList::class.java)
                 )
-            } returns ResponseEntity.ok(
+            } willRespond ResponseEntity.ok(
                 PREFERRED_SHOPPING_LIST
             )
 
             every {
                 restTemplate.put(match<String> { it.contains("user-service") }, any())
-            } answers {
+            } willRespondWith {
 
             }
 

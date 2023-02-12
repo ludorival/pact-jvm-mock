@@ -12,6 +12,7 @@ repositories {
 }
 
 dependencies {
+    api(project(":mockk"))
     implementation("io.mockk:mockk:1.13.4")
     implementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
