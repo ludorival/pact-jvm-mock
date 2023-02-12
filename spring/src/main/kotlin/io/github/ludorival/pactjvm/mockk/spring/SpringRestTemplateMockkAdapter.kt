@@ -8,6 +8,7 @@ import io.mockk.Call
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
@@ -17,7 +18,7 @@ class SpringRestTemplateMockkAdapter(private val determineConsumerFromUrl: Deter
         return call.invocation.self is RestTemplate
     }
 
-    override fun <T> buildInteraction(call: Call, response: T): ConsumerInteraction {
+    override fun <T> buildInteraction(call: Call, result: Result<T>): ConsumerInteraction {
         val uri = call.getUri()
         val consumerMetaData = determineConsumerFromUrl.invoke(uri)
         val interaction = Pact.Interaction(
@@ -28,7 +29,7 @@ class SpringRestTemplateMockkAdapter(private val determineConsumerFromUrl: Deter
                 headers = call.getHttpHeaders(),
                 body = call.getRequestBody()?.let { consumerMetaData.customObjectMapper.valueToTree(it) }
             ),
-            response = response.asResponseEntity().asResponse(consumerMetaData.customObjectMapper)
+            response = result.asResponseEntity().asResponse(consumerMetaData.customObjectMapper)
         )
         return ConsumerInteraction(consumerMetaData, interaction)
     }
@@ -69,11 +70,20 @@ class SpringRestTemplateMockkAdapter(private val determineConsumerFromUrl: Deter
 
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> T.asResponseEntity(): ResponseEntity<Any> {
-        return when (this) {
-            is Unit -> ResponseEntity.ok().build()
-            is ResponseEntity<*> -> this as ResponseEntity<Any>
-            else -> ResponseEntity.ok(this)
+    private fun <T> Result<T>.asResponseEntity(): ResponseEntity<Any> {
+        val response = getOrNull()
+        val exception = exceptionOrNull()
+        return when (response) {
+            is Unit              -> ResponseEntity.ok().build()
+            is ResponseEntity<*> -> response as ResponseEntity<Any>
+            else                 -> when (exception) {
+                null                       -> ResponseEntity.ok(response)
+                is HttpStatusCodeException -> ResponseEntity.status(exception.statusCode)
+                    .headers(exception.responseHeaders)
+                    .body(exception.responseBodyAsString.ifEmpty { exception.statusText })
+
+                else                       -> error("Not supported exception as Client exception")
+            }
         }
     }
 

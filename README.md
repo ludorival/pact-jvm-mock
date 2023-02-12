@@ -77,7 +77,11 @@ class ShoppingServiceClientTest
 Finally, you can use the library to generate your Pact contracts.
 `pact-jvm-mock` simplified the work by creating some extensions of [Mockk](https://github.com/mockk/mockk) functions.
 
-You can replace all your `returns` with `willRespond` and `answers` with `willRespondWith`.
+You can replace all your :
+
+- `returns` with `willRespond`
+- `answers` with `willRespondWith`
+
 Example:
 
 - An existing mock of `restTemplate` returning static response.
@@ -175,6 +179,29 @@ every {
     )
 }
 
+```
+
+### Client error
+
+`pact-jvm-mock` offers also a way to record Http errors. Like
+
+```kotlin
+every {
+    restTemplate.postForEntity(
+        match<URI> { it.path.contains("shopping-service") },
+        any(),
+        eq(ShoppingList::class.java)
+    )
+} willRespondWith {
+    providerStates = listOf("The request should return a 400 Bad request")
+    throw HttpClientErrorException.create(
+        HttpStatus.BAD_REQUEST,
+        "The title contains unexpected character",
+        HttpHeaders.EMPTY,
+        null,
+        null
+    )
+}
 ```
 
 ## Contributing

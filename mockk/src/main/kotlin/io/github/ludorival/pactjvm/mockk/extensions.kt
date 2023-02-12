@@ -18,15 +18,16 @@ infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: PactMockKAnswerSco
     MockKAdditionalAnswerScope<T, B> {
     return answers {
         val pactScope = PactMockKAnswerScope<T, B>(this)
-        val result = answer.invoke(pactScope, it)
+        val result = runCatching { answer.invoke(pactScope, it) }
         PactMockk.intercept(it, result, pactScope.description, pactScope.providerStates)
-        result
+        result.getOrThrow()
     }
 }
 
 infix fun <T, B> MockKStubScope<T, B>.willRespond(returnValue: T): MockKAdditionalAnswerScope<T, B> {
     return willRespondWith(ConstantAnswer(returnValue))
 }
+
 
 //inline fun <reified T> serializerWith(crossinline supplier: (JsonGenerator) -> Unit) = object : JsonSerializer<T>() {
 //    override fun serialize(value: T, gen: JsonGenerator, serializers: SerializerProvider?) {

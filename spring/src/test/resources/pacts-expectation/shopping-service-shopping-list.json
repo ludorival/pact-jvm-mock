@@ -203,6 +203,28 @@
       }
     },
     {
+      "providerStates": [
+        {
+          "name": "The request should return a 400 Bad request"
+        }
+      ],
+      "description": "should return an error when create a bad shopping list",
+      "request": {
+        "method": "POST",
+        "path": "/shopping-service/user/123",
+        "query": null,
+        "headers": null,
+        "body": {
+          "title": "Unexpected character \\s"
+        }
+      },
+      "response": {
+        "body": "The title contains unexpected character",
+        "status": 400,
+        "headers": {}
+      }
+    },
+    {
       "providerStates": null,
       "description": "should create a shopping list",
       "request": {

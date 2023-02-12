@@ -10,6 +10,7 @@ import io.github.ludorival.pactjvm.mockk.spring.contracts.willDeleteShoppingItem
 import io.github.ludorival.pactjvm.mockk.spring.contracts.willGetShoppingList
 import io.github.ludorival.pactjvm.mockk.spring.contracts.willListTwoShoppingLists
 import io.github.ludorival.pactjvm.mockk.spring.contracts.willPatchShoppingItem
+import io.github.ludorival.pactjvm.mockk.spring.contracts.willReturnAnErrorWhenCreateShoppingList
 import io.github.ludorival.pactjvm.mockk.spring.contracts.willReturnUserProfile
 import io.github.ludorival.pactjvm.mockk.spring.contracts.willUpdateShoppingList
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingServiceClient
@@ -21,7 +22,10 @@ import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.net.URI
 
@@ -106,6 +110,22 @@ class ShoppingServiceClientTest {
                     any<URI>(),
                     match<Map<String, String>> { it.get("name") == "My updated shopping list" })
             }
+        }
+    }
+
+    @Test
+    fun `should return an error when create a bad shopping list`() {
+        given {
+            restTemplate.willReturnAnErrorWhenCreateShoppingList()
+        } `when` {
+            assertThrows<HttpClientErrorException> {
+                shoppingServiceClient.createShoppingList(
+                    USER_ID,
+                    "Unexpected character \\s"
+                )
+            }
+        } then {
+            assertEquals(HttpStatus.BAD_REQUEST, it.statusCode)
         }
     }
 

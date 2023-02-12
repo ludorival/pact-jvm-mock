@@ -6,6 +6,6 @@ interface PactMockkAdapter {
 
     fun support(call: Call): Boolean
 
-    fun <T> buildInteraction(call: Call, response: T): ConsumerInteraction
+    fun <T> buildInteraction(call: Call, result: Result<T>): ConsumerInteraction
 
 }
