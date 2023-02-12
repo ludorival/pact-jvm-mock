@@ -29,17 +29,18 @@ object PactMockk {
         pacts[consumerMetaData.name] = pactWithObjectMapper.addInteraction(interaction)
     }
 
-    internal fun <T> intercept(call: Call, response: T) {
+    internal fun <T> intercept(call: Call, response: T, description: String, providerStates: List<String>?) {
         val adapter = getAdapterFor(call)
         if (adapter != null) {
             val (consumerMetaData, interaction) = adapter.buildInteraction(call, response)
             addInteraction(
                 consumerMetaData,
                 interaction.copy(
-                    description = interaction.description.ifEmpty {
+                    description = description.ifEmpty {
                         ExtractInteractionDescription.getDescriptionFromStackTrace()
-                            ?: interaction.description
-                    }
+                            ?: description
+                    },
+                    providerStates = providerStates?.map { Pact.Interaction.ProviderState(it) }
                 )
             )
         }

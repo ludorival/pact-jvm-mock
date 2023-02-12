@@ -240,20 +240,9 @@
       "response": {
         "body": {
           "id": 1,
-          "title": "My Favorite Shopping list",
+          "title": "My Shopping list",
           "userId": 123,
-          "items": [
-            {
-              "id": 1,
-              "name": "Apple",
-              "quantity": 2
-            },
-            {
-              "id": 2,
-              "name": "Banana",
-              "quantity": 2
-            }
-          ]
+          "items": []
         },
         "status": 200,
         "headers": {}

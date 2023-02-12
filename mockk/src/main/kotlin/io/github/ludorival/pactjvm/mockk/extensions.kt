@@ -5,7 +5,6 @@ import io.mockk.Answer
 import io.mockk.Call
 import io.mockk.ConstantAnswer
 import io.mockk.MockKAdditionalAnswerScope
-import io.mockk.MockKAnswerScope
 import io.mockk.MockKStubScope
 import java.net.URI
 
@@ -15,11 +14,12 @@ infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: Answer<T>): MockKA
     }
 }
 
-infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: MockKAnswerScope<T, B>.(Call) -> T):
+infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: PactMockKAnswerScope<T, B>.(Call) -> T):
     MockKAdditionalAnswerScope<T, B> {
     return answers {
-        val result = answer.invoke(this, it)
-        PactMockk.intercept(it, result)
+        val pactScope = PactMockKAnswerScope<T, B>(this)
+        val result = answer.invoke(pactScope, it)
+        PactMockk.intercept(it, result, pactScope.description, pactScope.providerStates)
         result
     }
 }

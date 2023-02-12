@@ -136,6 +136,47 @@ Those changes can be easily done with a `Replace All` with your favourite IDE.
 
 Run your tests, and you should see the generated pact files in your `src/test/resources/pacts`.
 
+## More configurations
+
+### Set a description
+
+By default, the description is the test method name. You can set a description for each interaction.
+
+Use `willRespondWith` like
+
+```kotlin
+every {
+    restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
+} willRespondWith {
+    description = "get the user profile"
+    ResponseEntity.ok(
+        USER_PROFILE
+    )
+}
+
+```
+
+### Set provider states
+
+The provider state refers to the state of the API or service that is being tested.
+The provider state is the starting point for each test scenario, and it sets the conditions under which the provider
+will respond to requests from the consumer.
+
+To specify the provider states :
+
+```kotlin
+every {
+    restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
+} willRespondWith {
+    description = "get the user profile"
+    providerStates = listOf("The user has a preferred shopping list")
+    ResponseEntity.ok(
+        USER_PROFILE
+    )
+}
+
+```
+
 ## Contributing
 
 pact-jvm-mock is an open-source project and contributions are welcome! If you're interested in contributing, please

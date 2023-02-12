@@ -1,17 +1,18 @@
-package io.github.ludorival.pactjvm.mockk.spring
+package io.github.ludorival.pactjvm.mockk.spring.test
 
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingList
+import io.github.ludorival.pactjvm.mockk.spring.PREFERRED_SHOPPING_ID
+import io.github.ludorival.pactjvm.mockk.spring.ShoppingPactExtension
+import io.github.ludorival.pactjvm.mockk.spring.USER_ID
+import io.github.ludorival.pactjvm.mockk.spring.contracts.willCreateShoppingList
+import io.github.ludorival.pactjvm.mockk.spring.contracts.willReturnUserProfile
+import io.github.ludorival.pactjvm.mockk.spring.contracts.willSetPreferredShoppingList
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingServiceClient
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserPreferences
-import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserServiceClient
-import io.github.ludorival.pactjvm.mockk.willRespond
-import io.github.ludorival.pactjvm.mockk.willRespondWith
 import io.mockk.MockKAnnotations
-import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
@@ -19,9 +20,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
-import java.net.URI
 
 @ExtendWith(ShoppingPactExtension::class)
 class UserServiceClientTest {
@@ -41,11 +40,7 @@ class UserServiceClientTest {
     @Test
     fun `should get the user profile`() {
         given {
-            every {
-                restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-            } willRespond ResponseEntity.ok(
-                USER_PROFILE
-            )
+            restTemplate.willReturnUserProfile()
         } `when` {
             userServiceClient.getUserProfile(USER_ID)
         } then {
@@ -59,21 +54,8 @@ class UserServiceClientTest {
     @Test
     fun `should set preferred shopping list`() {
         given {
-            every {
-                restTemplate.postForEntity(
-                    match<URI> { it.path.contains("shopping-service") },
-                    any(),
-                    eq(ShoppingList::class.java)
-                )
-            } willRespond ResponseEntity.ok(
-                PREFERRED_SHOPPING_LIST
-            )
-
-            every {
-                restTemplate.put(match<String> { it.contains("user-service") }, any())
-            } willRespondWith {
-
-            }
+            restTemplate.willCreateShoppingList()
+            restTemplate.willSetPreferredShoppingList()
 
         } `when` {
             shoppingServiceClient.createShoppingList(USER_ID, "My shopping list")
