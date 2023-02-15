@@ -10,11 +10,12 @@ plugins {
 
 
 val gitVersion: groovy.lang.Closure<String> by extra
+
+group = "io.github.ludorival"
 version = gitVersion().replace(".dirty", "-SNAPSHOT")
-
 subprojects {
-
-    this.project.version = version
+    group = rootProject.group
+    version = rootProject.version
     apply {
         plugin("kotlin")
         plugin("maven-publish")
@@ -25,6 +26,11 @@ subprojects {
 
     repositories {
         mavenCentral()
+    }
+    java {
+        withJavadocJar()
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_1_8
     }
 
     tasks.getByName<Test>("test") {
@@ -44,17 +50,13 @@ subprojects {
         enabled = true
     }
 
-    val sourcesJar = tasks.create("sourcesJar", Jar::class.java) {
-        archiveClassifier.set("sources")
-        from(sourceSets["main"].allSource)
-        enabled = true
-    }
+
     publishing {
         publications {
             create<MavenPublication>("main") {
+                from(this@subprojects.components.getByName("java"))
                 pom {
-                    name.set("${this@subprojects.group}:${this@subprojects.name}")
-
+                    name.set(this@subprojects.name)
                     description.set("Pact JVM Mock - Leverage existing Mocks (${this@subprojects.name})")
                     url.set("https://github.com/ludorival/pact-jvm-mock")
                     licenses {
@@ -62,10 +64,6 @@ subprojects {
                             name.set("The Apache Software License, Version 2.0")
                             url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
                         }
-                    }
-                    organization {
-                        name.set("Egencia")
-                        name.set("https://www.egencia.com/")
                     }
                     developers {
                         developer {
@@ -80,16 +78,7 @@ subprojects {
                         url.set("https://github.com/ludorival/pact-jvm-mock")
                     }
 
-                    // child projects need to be evaluated before their description can be read
-                    val mavenPom = this
-                    afterEvaluate {
-                        mavenPom.description.set(this@subprojects.description)
-                    }
                 }
-            }
-            create<MavenPublication>("sources") {
-                from(this@subprojects.components.getByName("java"))
-                artifact(sourcesJar)
             }
 
 
@@ -133,7 +122,6 @@ nexusPublishing {
 }
 
 project(":pact-jvm-mockk-core") {
-
     dependencies {
         compileOnly("io.mockk:mockk:1.13.4")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.14.2")
