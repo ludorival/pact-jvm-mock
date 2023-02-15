@@ -6,7 +6,11 @@ import io.mockk.Call
 import io.mockk.ConstantAnswer
 import io.mockk.MockKAdditionalAnswerScope
 import io.mockk.MockKStubScope
-import java.net.URI
+
+fun pactOptions(builder: PactOptions.Builder.() -> Unit) =
+    PactMockk.setPactOptions(PactOptions.Builder().apply(builder).build())
+
+fun writePacts() = PactMockk.writePacts()
 
 infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: Answer<T>): MockKAdditionalAnswerScope<T, B> {
     return willRespondWith {
@@ -19,7 +23,7 @@ infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: PactMockKAnswerSco
     return answers {
         val pactScope = PactMockKAnswerScope<T, B>(this)
         val result = runCatching { answer.invoke(pactScope, it) }
-        PactMockk.intercept(it, result, pactScope.description, pactScope.providerStates)
+        PactMockk.intercept(it, result, pactScope.pactOptions)
         result.getOrThrow()
     }
 }
@@ -29,18 +33,8 @@ infix fun <T, B> MockKStubScope<T, B>.willRespond(returnValue: T): MockKAddition
 }
 
 
-//inline fun <reified T> serializerWith(crossinline supplier: (JsonGenerator) -> Unit) = object : JsonSerializer<T>() {
-//    override fun serialize(value: T, gen: JsonGenerator, serializers: SerializerProvider?) {
-//        supplier(gen)
-//    }
-//}
-//
-//inline fun <reified T> serializerAsDefault(defaultValue: String) =
-//    serializerWith<T> { it.writeString(defaultValue) }
+typealias DetermineConsumerFromInteraction = (Pact.Interaction) -> String
 
-
-fun URI.getConsumerName() = path.split("/").first { it.isNotBlank() }
-
-internal val DEFAULT_OBJECT_MAPPER = ObjectMapper()
+typealias ObjectMapperCustomizer = (String) -> ObjectMapper
 
 

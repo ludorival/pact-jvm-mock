@@ -6,15 +6,42 @@ plugins {
     id 'com.palantir.git-version' version '0.15.0'
 }
 
-def publish(Project project) {
 
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = findProperty("maven.username") ?: System.getenv("OSSRH_USERNAME")
+            password = findProperty("maven.password") ?: System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD")
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+subprojects {
 
+    apply {
+        plugin("kotlin")
+        plugin("maven-publish")
+        plugin("signing")
+    }
+
+    group = "io.github.ludorival"
+    version = gitVersion().replace(".dirty", "-SNAPSHOT")
+
+    repositories {
+        mavenCentral()
+    }
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+        archiveClassifier = "sources"
+    }
     publishing {
         publications {
             "${project.name}"(MavenPublication) {
                 def name = "pact-jvm-mockk-${project.name.replace("mockk", "core")}"
                 artifactId = name
                 from components.java
+                artifact sourceJar
                 versionMapping {
                     usage('java-api') {
                         fromResolutionOf('runtimeClasspath')
@@ -64,32 +91,6 @@ def publish(Project project) {
     signing {
         sign publishing.publications."${project.name}"
     }
-
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = findProperty("maven.username") ?: System.getenv("OSSRH_USERNAME")
-            password = findProperty("maven.password") ?: System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD")
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-        }
-    }
-}
-allprojects {
-
-    apply {
-        plugin("kotlin")
-    }
-
-    group = "io.github.ludorival"
-    version = gitVersion().replace(".dirty", "-SNAPSHOT")
-
-    repositories {
-        mavenCentral()
-    }
-
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
@@ -102,28 +103,37 @@ allprojects {
 
 }
 
-
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
 project(":mockk") {
 
-    publish(project)
     dependencies {
-        implementation("io.mockk:mockk:1.13.4")
-        implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+        compileOnly("io.mockk:mockk:1.13.4")
+        compileOnly("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+        compileOnly("org.slf4j:slf4j-api:2.0.5")
         implementation "org.jetbrains.kotlin:kotlin-stdlib"
-
+        implementation "org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0"
     }
 }
 
 project(":spring") {
-    publish(project)
     dependencies {
         api(project(":mockk"))
-        implementation("io.mockk:mockk:1.13.4")
-        implementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-        implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
-        testImplementation("io.github.ludorival:kotlin-tdd:2.0.4.beta")
-        implementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
         implementation "org.jetbrains.kotlin:kotlin-stdlib"
-        implementation("org.springframework:spring-web:6.0.3")
+        compileOnly("org.springframework:spring-web:5.3.24")
+        compileOnly("io.mockk:mockk:1.13.4")
+        compileOnly("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+
+        testImplementation("io.mockk:mockk:1.13.4")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+        testImplementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+        testImplementation("io.github.ludorival:kotlin-tdd:2.0.4.beta")
+        testImplementation("org.springframework:spring-web:5.3.24")
     }
 }
+
+

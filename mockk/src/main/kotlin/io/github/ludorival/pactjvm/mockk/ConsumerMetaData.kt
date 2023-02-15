@@ -5,6 +5,6 @@ import io.github.ludorival.pactjvm.mockk.Pact.Companion.DEFAULT_METADATA
 
 data class ConsumerMetaData(
     val name: String,
-    val pactMetaData: Pact.MetaData = DEFAULT_METADATA,
-    val customObjectMapper: ObjectMapper = DEFAULT_OBJECT_MAPPER
+    val customObjectMapper: ObjectMapper = DEFAULT_OBJECT_MAPPER,
+    val pactMetaData: Pact.MetaData = DEFAULT_METADATA
 )

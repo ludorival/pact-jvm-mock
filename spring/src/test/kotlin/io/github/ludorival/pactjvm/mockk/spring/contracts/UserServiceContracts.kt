@@ -9,17 +9,21 @@ import org.springframework.web.client.RestTemplate
 
 
 fun RestTemplate.willReturnUserProfile() = every {
-    getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
+    getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java, *anyVararg())
 } willRespondWith {
-    description = "get the user profile"
-    providerStates = listOf("The user has a preferred shopping list")
+    options {
+        description = "get the user profile"
+        providerStates = listOf("The user has a preferred shopping list")
+    }
     ResponseEntity.ok(
         USER_PROFILE
     )
 }
 
 fun RestTemplate.willSetPreferredShoppingList() = every {
-    put(match<String> { it.contains("user-service") }, any())
+    exchange(any(), UserProfile::class.java)
 } willRespondWith {
-
+    ResponseEntity.ok(
+        USER_PROFILE
+    )
 }

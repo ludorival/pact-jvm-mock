@@ -1,48 +1,71 @@
 package io.github.ludorival.pactjvm.mockk
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.Call
 import java.util.concurrent.ConcurrentHashMap
 
-object PactMockk {
+internal object PactMockk {
 
-    var pactDirectory: String = "./src/test/resources/pacts"
 
-    lateinit var provider: String
+    private var pactOptions = PactOptions.DEFAULT_OPTIONS
+    internal fun setPactOptions(pactOptions: PactOptions) {
+        this.pactOptions = pactOptions
+    }
 
-    private val pacts: ConcurrentHashMap<String, PactWithObjectMapper> = ConcurrentHashMap()
+    private val pacts: ConcurrentHashMap<String, PactToWrite> = ConcurrentHashMap()
 
-    private val adapters: MutableList<PactMockkAdapter> = mutableListOf()
-
-    fun addAdapter(adapter: PactMockkAdapter) = adapters.add(adapter)
 
     fun writePacts() {
         pacts.values.forEach {
-            it.write(pactDirectory)
+            it.write(pactOptions.pactDirectory)
         }
     }
 
 
-    private fun getAdapterFor(call: Call) = adapters.find { it.support(call) }
-    private fun addInteraction(consumerMetaData: ConsumerMetaData, interaction: Pact.Interaction) {
-        val pactWithObjectMapper =
-            pacts.getOrPut(consumerMetaData.name) { PactWithObjectMapper(provider, consumerMetaData) }
-        pacts[consumerMetaData.name] = pactWithObjectMapper.addInteraction(interaction)
+    private fun getPact(consumerName: String) = pacts.getOrPut(consumerName) {
+        PactToWrite(
+            pactOptions.provider,
+            ConsumerMetaData(
+                consumerName, pactOptions.objectMapperCustomizer.invoke(consumerName),
+                pactOptions.pactMetaData
+            ),
+            pactOptions.isDeterministic
+        )
     }
 
-    internal fun <T> intercept(call: Call, response: Result<T>, description: String, providerStates: List<String>?) {
+    private fun getAdapterFor(call: Call) = pactOptions.adapters.find { it.support(call) }
+    private fun addInteraction(interaction: Pact.Interaction) {
+        val consumerName = pactOptions.determineConsumerFromInteraction.invoke(interaction)
+        val pactToWrite = getPact(consumerName)
+        pacts[consumerName] = pactToWrite.addInteraction(
+            serializeRequestAndResponse(
+                interaction,
+                pactToWrite.consumerMetaData.customObjectMapper
+            )
+        )
+    }
+
+    internal fun <T> intercept(call: Call, response: Result<T>, interactionOptions: InteractionOptions) {
         val adapter = getAdapterFor(call)
         if (adapter != null) {
-            val (consumerMetaData, interaction) = adapter.buildInteraction(call, response)
-            addInteraction(
-                consumerMetaData,
-                interaction.copy(
-                    description = description.ifEmpty {
-                        ExtractInteractionDescription.getDescriptionFromStackTrace()
-                            ?: description
-                    },
-                    providerStates = providerStates?.map { Pact.Interaction.ProviderState(it) }
-                )
-            )
+            val interaction = adapter.buildInteraction(call, response, interactionOptions)
+            addInteraction(interaction)
         }
     }
+
+    private fun serializeRequestAndResponse(
+        interaction: Pact.Interaction,
+        objectMapper: ObjectMapper
+    ): Pact.Interaction {
+        return interaction
+            .copy(
+                request = interaction.request
+                    .copy(body = objectMapper.toJson(interaction.request.body)),
+                response = interaction.response
+                    .copy(body = objectMapper.toJson(interaction.response.body))
+            )
+    }
+
+    private fun ObjectMapper.toJson(value: Any?): JsonNode? = value?.let { valueToTree(it) }
 }

@@ -18,15 +18,20 @@ import org.springframework.web.client.RestTemplate
 import java.net.URI
 
 
-fun RestTemplate.willCreateShoppingList() = every {
+fun RestTemplate.willCreateShoppingList(description: String? = null) = every {
     postForEntity(
         match<URI> { it.path.contains("shopping-service") },
         any(),
         eq(ShoppingList::class.java)
     )
-} willRespond ResponseEntity.ok(
-    EMPTY_SHOPPING_LIST
-)
+} willRespondWith {
+    options {
+        this.description = description
+    }
+    ResponseEntity.ok(
+        EMPTY_SHOPPING_LIST
+    )
+}
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 fun RestTemplate.willReturnAnErrorWhenCreateShoppingList() = every {
@@ -36,7 +41,10 @@ fun RestTemplate.willReturnAnErrorWhenCreateShoppingList() = every {
         eq(ShoppingList::class.java)
     )
 } willRespondWith {
-    providerStates = listOf("The request should return a 400 Bad request")
+    options {
+        description = "should return a 400 Bad request"
+        providerStates = listOf("The request should return a 400 Bad request")
+    }
     throw HttpClientErrorException.create(
         HttpStatus.BAD_REQUEST,
         "The title contains unexpected character",
@@ -62,6 +70,9 @@ fun RestTemplate.willPatchShoppingItem() = every {
         eq(ShoppingList.Item::class.java)
     )
 } willRespondWith {
+    options {
+        description = "Patch a shopping item"
+    }
     val item = arg<ShoppingList.Item>(1)
     item
 }
@@ -73,19 +84,30 @@ fun RestTemplate.willListTwoShoppingLists() = every {
         any(),
         any<ParameterizedTypeReference<List<ShoppingList>>>()
     )
-} willRespond ResponseEntity.ok(
-    listOf(
-        PREFERRED_SHOPPING_LIST,
-        SHOPPING_LIST_TO_DELETE
+} willRespondWith {
+    options {
+        description = "list two shopping lists"
+    }
+    println(
+        "I can have access to $args - $matcher - " +
+            "$self - $nArgs -${firstArg<Any>()} - ${secondArg<Any>()} ${thirdArg<Any>()} ${lastArg<Any>()}"
     )
-)
+    ResponseEntity.ok(
+        listOf(
+            PREFERRED_SHOPPING_LIST,
+            SHOPPING_LIST_TO_DELETE
+        )
+    )
+}
 
 fun RestTemplate.willDeleteShoppingItem() = every {
     delete(
         match<URI> { it.path.contains("shopping-service") },
     )
 } willRespondWith {
-    println("I can have access to $args")
+    options {
+        description = "delete shopping item"
+    }
 }
 
 fun RestTemplate.willUpdateShoppingList() = every {
@@ -94,5 +116,9 @@ fun RestTemplate.willUpdateShoppingList() = every {
         any()
     )
 } willRespondWith {
+    options {
+        description = "update shopping list"
+    }
     println("I can have access to scope $scope")
+
 }

@@ -1,7 +1,6 @@
 package io.github.ludorival.pactjvm.mockk
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.JsonNode
 
 data class Pact(
     val provider: Pacticipant,
@@ -11,10 +10,11 @@ data class Pact(
 
     ) {
 
-    constructor(provider: String, consumerMetaData: ConsumerMetaData) : this(
+    constructor(provider: String, consumerMetaData: ConsumerMetaData, interactions: List<Interaction>) : this(
         Pacticipant(provider),
         Pacticipant(consumerMetaData.name),
         metadata = consumerMetaData.pactMetaData,
+        interactions = interactions
     )
 
     data class Pacticipant(val name: String)
@@ -33,7 +33,7 @@ data class Pact(
             val path: String,
             val query: String? = null,
             val headers: Map<String, String>? = null,
-            val body: JsonNode? = null
+            val body: Any? = null
         ) {
             enum class Method {
                 GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE
@@ -41,7 +41,7 @@ data class Pact(
         }
 
         data class Response(
-            val body: JsonNode?,
+            val body: Any?,
             val status: Int = 200,
             val headers: Map<String, String>? = null
         )

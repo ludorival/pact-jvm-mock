@@ -32,7 +32,7 @@ following dependency to your build.gradle file:
 **Gradle**
 
 ```groovy
-testImplementation "io.github.ludorival:pact-jvm-mock:$pactJvmMockVersion"
+testImplementation "io.github.ludorival:pact-jvm-mockk-spring:$pactJvmMockVersion"
 ```
 
 Or if you are using Maven:
@@ -43,7 +43,7 @@ Or if you are using Maven:
 
 <dependency>
     <groupId>io.github.ludorival</groupId>
-    <artifactId>pact-jvm-mock</artifactId>
+    <artifactId>pact-jvm-mockk-spring</artifactId>
     <version>${pactJvmMockVersion}</version>
     <scope>test</scope>
 </dependency>
@@ -57,10 +57,25 @@ For example, let's say you want to leverage existing mock of Spring RestTemplate
 With JUnit 5, you can create an extension by inheriting `SpringPactMockkExtension`. Here is a minimal example:
 
 ```kotlin
-object MyPactMock : SpringPactMockkExtension(provider = "my-service") 
+import io.github.ludorival.pactjvm.mockk.pactOptions
+import io.github.ludorival.pactjvm.mockk.spring.SpringRestTemplateMockkAdapter
+import io.github.ludorival.pactjvm.mockk.writePacts
+
+object MyPactMock : AfterAllCallback {
+
+    init {
+        pactOptions {
+            provider = "my-service"
+            // allow to intercept Spring RestTemplate mocks
+            addAdapter(SpringRestTemplateMockkAdapter())
+        }
+    }
+
+    override fun afterAll(context: ExtensionContext?) = writePacts()
+} 
 ```
 
-> By default, the contracts will be written in the src/test/pacts folder.
+> By default, the contracts will be written in the src/test/resources/pacts folder.
 
 ### Extend your tests files
 
@@ -152,7 +167,9 @@ Use `willRespondWith` like
 every {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
 } willRespondWith {
-    description = "get the user profile"
+    options {
+        description = "get the user profile"
+    }
     ResponseEntity.ok(
         USER_PROFILE
     )
@@ -172,8 +189,10 @@ To specify the provider states :
 every {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
 } willRespondWith {
-    description = "get the user profile"
-    providerStates = listOf("The user has a preferred shopping list")
+    options {
+        description = "get the user profile"
+        providerStates = listOf("The user has a preferred shopping list")
+    }
     ResponseEntity.ok(
         USER_PROFILE
     )
@@ -193,7 +212,9 @@ every {
         eq(ShoppingList::class.java)
     )
 } willRespondWith {
-    providerStates = listOf("The request should return a 400 Bad request")
+    options {
+        providerStates = listOf("The request should return a 400 Bad request")
+    }
     throw HttpClientErrorException.create(
         HttpStatus.BAD_REQUEST,
         "The title contains unexpected character",
@@ -214,20 +235,36 @@ For example, let's say you have a date which will be generated at each test, you
 for `determineConsumerFromUrl`
 
 ```kotlin
-object MyPactMock : SpringPactMockkExtension(provider = "my-service",
-    determineConsumerFromUrl = {
-        ConsumerMetaData(it.getConsumerName(),
-            customObjectMapper = Jackson2ObjectMapperBuilder().serializerByType(
+// MyPactMock.kt
+init {
+    pactOptions {
+        provider = "my-service"
+        isDeterministic = true // <-- force to be deterministic
+        addAdapter(SpringRestTemplateMockkAdapter())
+        objectMapperCustomizer = {
+            Jackson2ObjectMapperBuilder().serializerByType(
                 LocalDate::class.java,
-                object : JsonSerializer<LocalDate>() {
-                    override fun serialize(value: LocalDate?, gen: JsonGenerator, serializers: SerializerProvider?) {
-                        // all LocalDate will always have the same date in the contract
-                        gen.writeString("2023-01-01")
-                    }
+                serializerAsDefault<LocalDate>("2023-01-01")
+            ).build()
+        }
+    }
+}
 
-                }).build()
-        )
-    })
+```
+
+### Change the pact directory
+
+By default, the generated pacts are stored in `src/test/resources/pacts`. You can configure that in the pact options:
+
+```kotlin
+// MyPactMock.kt
+init {
+    pactOptions {
+        provider = "my-service"
+        pactDirectory = "my-own-directory"
+        // ...
+    }
+}
 
 ```
 
