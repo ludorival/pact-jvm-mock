@@ -143,7 +143,7 @@ project(":pact-jvm-mockk-spring") {
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
         testImplementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
-        testImplementation("io.github.ludorival:kotlin-tdd:2.0.4.beta")
+        testImplementation("io.github.ludorival:kotlin-tdd:79acbc5.dirty")
         testImplementation("org.springframework:spring-web:5.3.25")
     }
 }
