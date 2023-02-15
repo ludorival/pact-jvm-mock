@@ -1,5 +1,6 @@
 package io.github.ludorival.pactjvm.mockk
 
+@Suppress("LongParameterList")
 class PactOptions private constructor(
     val provider: String,
     val pactDirectory: String,

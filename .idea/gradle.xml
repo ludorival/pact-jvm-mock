@@ -10,8 +10,8 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/mockk" />
-            <option value="$PROJECT_DIR$/spring" />
+            <option value="$PROJECT_DIR$/pact-jvm-mockk-core" />
+            <option value="$PROJECT_DIR$/pact-jvm-mockk-spring" />
           </set>
         </option>
       </GradleProjectSettings>

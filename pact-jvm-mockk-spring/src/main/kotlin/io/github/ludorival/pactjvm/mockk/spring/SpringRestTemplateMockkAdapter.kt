@@ -15,6 +15,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode
 import java.net.URI
 
+@Suppress("TooManyFunctions")
 class SpringRestTemplateMockkAdapter :
     PactMockkAdapter() {
 
@@ -28,6 +29,7 @@ class SpringRestTemplateMockkAdapter :
         return call.invocation.self is RestTemplate
     }
 
+    @Suppress("SpreadOperator")
     override fun Call.getUri(): URI {
         // usually, the first parameter is the url
         val url = invocation.args[0]
