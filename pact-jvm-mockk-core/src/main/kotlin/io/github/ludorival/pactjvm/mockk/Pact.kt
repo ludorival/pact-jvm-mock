@@ -3,17 +3,17 @@ package io.github.ludorival.pactjvm.mockk
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Pact(
-    val provider: Pacticipant,
     val consumer: Pacticipant,
+    val provider: Pacticipant,
     val interactions: List<Interaction> = emptyList(),
     val metadata: MetaData,
 
     ) {
 
-    constructor(provider: String, consumerMetaData: ConsumerMetaData, interactions: List<Interaction>) : this(
-        Pacticipant(provider),
-        Pacticipant(consumerMetaData.name),
-        metadata = consumerMetaData.pactMetaData,
+    constructor(consumer: String, providerMetaData: ProviderMetaData, interactions: List<Interaction>) : this(
+        Pacticipant(consumer),
+        Pacticipant(providerMetaData.name),
+        metadata = providerMetaData.pactMetaData,
         interactions = interactions
     )
 

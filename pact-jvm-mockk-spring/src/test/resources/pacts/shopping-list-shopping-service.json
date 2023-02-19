@@ -1,8 +1,8 @@
 {
-  "provider": {
+  "consumer": {
     "name": "shopping-list"
   },
-  "consumer": {
+  "provider": {
     "name": "shopping-service"
   },
   "interactions": [

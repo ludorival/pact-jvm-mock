@@ -8,13 +8,13 @@ import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
 
 internal data class PactToWrite(
-    val provider: String,
-    val consumerMetaData: ConsumerMetaData,
+    val consumer: String,
+    val providerMetaData: ProviderMetaData,
     private val isDeterministic: Boolean = false
 ) {
 
     init {
-        if (provider.isBlank()) error("The provider should not be empty")
+        if (consumer.isBlank()) error("The consumer should not be empty")
     }
 
     private val interactionsByDescription = ConcurrentHashMap<String, Pact.Interaction>()
@@ -59,7 +59,7 @@ internal data class PactToWrite(
                     |Possible solutions:
                     |1) Force the Pact to be deterministic
                     |pactOptions {
-                    |  provider = "..."
+                    |  consumer = "..."
                     |  addAdapter(...)
                     |  isDeterministic = true // <-- set to true 
                     |}
@@ -97,7 +97,7 @@ internal data class PactToWrite(
         return sb.toString()
     }
 
-    private val pactFile get() = "${consumerMetaData.name}-${provider}.json"
+    private val pactFile get() = "${consumer}-${providerMetaData.name}.json"
     internal fun write(directory: String) {
         if (descriptions.isEmpty()) return
         File(directory, pactFile).apply {
@@ -105,13 +105,13 @@ internal data class PactToWrite(
             if (!exists()) {
                 Files.createDirectories(path)
             }
-            val pact = Pact(provider, consumerMetaData, descriptions.map { interactionsByDescription.getValue(it) })
+            val pact = Pact(consumer, providerMetaData, descriptions.map { interactionsByDescription.getValue(it) })
             writeText(pact.toPrettyJson())
         }
     }
 
     private fun Any.toPrettyJson() =
-        consumerMetaData.customObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
+        providerMetaData.customObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
 
     companion object {
         private const val RESET = "\u001B[0m"

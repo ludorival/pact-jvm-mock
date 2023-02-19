@@ -14,7 +14,7 @@ object DeterministicPact : BeforeAllCallback, AfterAllCallback {
 
     override fun beforeAll(context: ExtensionContext?) {
         pactOptions {
-            provider = "shopping-list"
+            consumer = "shopping-list"
             pactDirectory = PACT_DIRECTORY
             isDeterministic = true
             objectMapperCustomizer = { CUSTOM_OBJECT_MAPPER }

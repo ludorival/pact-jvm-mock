@@ -64,7 +64,7 @@ object MyPactMock : AfterAllCallback {
 
     init {
         pactOptions {
-            provider = "my-service"
+            consumer = "my-service"
             // allow to intercept Spring RestTemplate mocks
             addAdapter(SpringRestTemplateMockkAdapter())
         }
@@ -235,7 +235,7 @@ for `determineConsumerFromUrl`
 // MyPactMock.kt
 init {
     pactOptions {
-        provider = "my-service"
+        consumer = "my-service"
         isDeterministic = true // <-- force to be deterministic
         addAdapter(SpringRestTemplateMockkAdapter())
         objectMapperCustomizer = {
@@ -257,7 +257,7 @@ By default, the generated pacts are stored in `src/test/resources/pacts`. You ca
 // MyPactMock.kt
 init {
     pactOptions {
-        provider = "my-service"
+        consumer = "my-service"
         pactDirectory = "my-own-directory"
         // ...
     }

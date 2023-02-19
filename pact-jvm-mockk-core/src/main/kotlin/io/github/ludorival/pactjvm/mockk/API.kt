@@ -33,7 +33,7 @@ infix fun <T, B> MockKStubScope<T, B>.willRespond(returnValue: T): MockKAddition
 }
 
 
-typealias DetermineConsumerFromInteraction = (Pact.Interaction) -> String
+typealias DetermineProviderFromInteraction = (Pact.Interaction) -> String
 
 typealias ObjectMapperCustomizer = (String) -> ObjectMapper
 

@@ -25,8 +25,8 @@ internal object PactMockk {
 
     private fun getPact(consumerName: String) = pacts.getOrPut(consumerName) {
         PactToWrite(
-            pactOptions.provider,
-            ConsumerMetaData(
+            pactOptions.consumer,
+            ProviderMetaData(
                 consumerName, pactOptions.objectMapperCustomizer.invoke(consumerName),
                 pactOptions.pactMetaData
             ),
@@ -36,12 +36,12 @@ internal object PactMockk {
 
     private fun getAdapterFor(call: Call) = pactOptions.adapters.find { it.support(call) }
     private fun addInteraction(interaction: Pact.Interaction) {
-        val consumerName = pactOptions.determineConsumerFromInteraction.invoke(interaction)
+        val consumerName = pactOptions.determineProviderFromInteraction.invoke(interaction)
         val pactToWrite = getPact(consumerName)
         pacts[consumerName] = pactToWrite.addInteraction(
             serializeRequestAndResponse(
                 interaction,
-                pactToWrite.consumerMetaData.customObjectMapper
+                pactToWrite.providerMetaData.customObjectMapper
             )
         )
     }

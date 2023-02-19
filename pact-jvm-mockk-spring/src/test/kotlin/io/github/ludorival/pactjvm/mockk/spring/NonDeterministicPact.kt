@@ -23,7 +23,7 @@ object NonDeterministicPact : BeforeAllCallback, AfterAllCallback {
 
     override fun beforeAll(context: ExtensionContext?) {
         pactOptions {
-            provider = "shopping-list"
+            consumer = "shopping-list"
             pactDirectory = PACT_DIRECTORY
             objectMapperCustomizer = { CUSTOM_OBJECT_MAPPER }
             addAdapter(SpringRestTemplateMockkAdapter())
