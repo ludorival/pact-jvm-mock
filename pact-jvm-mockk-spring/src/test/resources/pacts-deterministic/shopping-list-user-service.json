@@ -1,19 +1,18 @@
 {
-  "consumer": {
-    "name": "shopping-list"
+  "consumer" : {
+    "name" : "shopping-list"
   },
-  "provider": {
-    "name": "user-service"
+  "provider" : {
+    "name" : "user-service"
   },
-  "interactions": [
-    {
-      "providerStates": null,
-      "description": "http://localhost:1234/user-service/v1/user/123",
-      "request": {
-        "method": "PUT",
-        "path": "/user-service/v1/user/123",
-        "query": null,
-        "headers": {},
+  "interactions" : [ {
+    "providerStates" : null,
+    "description" : "http://localhost:1234/user-service/v1/user/123",
+    "request" : {
+      "method" : "PUT",
+      "path" : "/user-service/v1/user/123",
+      "query" : null,
+      "headers" : { },
       "body" : {
         "preferredShoppingListId" : 1
       }

@@ -1,19 +1,18 @@
 {
-  "consumer": {
-    "name": "shopping-list"
+  "consumer" : {
+    "name" : "shopping-list"
   },
-  "provider": {
-    "name": "shopping-service"
+  "provider" : {
+    "name" : "shopping-service"
   },
-  "interactions": [
-    {
-      "providerStates": null,
-      "description": "/shopping-service/user/123",
-      "request": {
-        "method": "POST",
-        "path": "/shopping-service/user/123",
-        "query": null,
-        "headers": null,
+  "interactions" : [ {
+    "providerStates" : null,
+    "description" : "/shopping-service/user/123",
+    "request" : {
+      "method" : "POST",
+      "path" : "/shopping-service/user/123",
+      "query" : null,
+      "headers" : null,
       "body" : {
         "title" : "My shopping list"
       }
