@@ -125,7 +125,7 @@ project(":pact-jvm-mockk-core") {
     dependencies {
         compileOnly("io.mockk:mockk:1.13.7")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.15.2")
-        compileOnly("org.slf4j:slf4j-api:2.0.7")
+        compileOnly("org.slf4j:slf4j-api:2.0.9")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
         implementation(kotlin("stdlib-jdk8"))
     }
