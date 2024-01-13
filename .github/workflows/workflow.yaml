@@ -43,7 +43,7 @@ jobs:
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@709956998852ef4cf43f91ee974b0771d4ae4965
+        uses: gradle/gradle-build-action@5516b399405349a7d56e45a78a0bd4b3eaa62f9e
         with:
           arguments: build
 
@@ -51,7 +51,7 @@ jobs:
         run: git status
         # Publishing to Maven Central
       - name: Publish to Maven Central
-        uses: gradle/gradle-build-action@709956998852ef4cf43f91ee974b0771d4ae4965
+        uses: gradle/gradle-build-action@5516b399405349a7d56e45a78a0bd4b3eaa62f9e
         with:
           arguments: printVersion publish  closeAndReleaseStagingRepository -Psigning.secretKeyRingFile=../.github/secret/secret-keys.gpg -Psigning.password=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} -Psigning.keyId=${{ secrets.OSSRH_GPG_SECRET_KEY }}
         env:
