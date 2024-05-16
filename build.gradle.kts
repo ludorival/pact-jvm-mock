@@ -123,7 +123,7 @@ nexusPublishing {
 
 project(":pact-jvm-mockk-core") {
     dependencies {
-        compileOnly("io.mockk:mockk:1.13.10")
+        compileOnly("io.mockk:mockk:1.13.11")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.17.1")
         compileOnly("org.slf4j:slf4j-api:2.0.13")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
@@ -136,10 +136,10 @@ project(":pact-jvm-mockk-spring") {
         api(project(":pact-jvm-mockk-core"))
         implementation(kotlin("stdlib-jdk8"))
         compileOnly("org.springframework:spring-web:5.3.34")
-        compileOnly("io.mockk:mockk:1.13.10")
+        compileOnly("io.mockk:mockk:1.13.11")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.17.1")
 
-        testImplementation("io.mockk:mockk:1.13.10")
+        testImplementation("io.mockk:mockk:1.13.11")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
         testImplementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
