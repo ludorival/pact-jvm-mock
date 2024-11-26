@@ -77,7 +77,7 @@ class SpringRestTemplateMockkAdapter :
         return asResponseEntity().asResponse()
     }
 
-    private fun HttpMethod.toPactMethod() = Method.valueOf(name)
+    private fun HttpMethod.toPactMethod() = Method.valueOf(this.toString())
     private fun Call.getHttpEntity(): HttpEntity<Any>? {
         return invocation.args.filterIsInstance<HttpEntity<Any>>().firstOrNull()
     }

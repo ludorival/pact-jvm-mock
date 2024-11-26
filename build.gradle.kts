@@ -30,14 +30,14 @@ subprojects {
     java {
         withJavadocJar()
         withSourcesJar()
-        sourceCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 
     tasks.getByName<Test>("test") {
         useJUnitPlatform()
     }
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
 
     tasks.jar.configure {
