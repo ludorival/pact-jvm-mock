@@ -47,7 +47,9 @@ jobs:
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
-        run: ./gradlew jreleaserDeploy
+        run: |
+          ./gradlew :pact-jvm-mockk-core:jreleaserDeploy
+          ./gradlew :pact-jvm-mockk-spring:jreleaserDeploy
 
   create-release:
     needs: deploy
