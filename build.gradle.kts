@@ -1,6 +1,8 @@
 // Plugin imports and declarations
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jreleaser.model.Active
+import org.jreleaser.model.Distribution
+
 
 plugins {
     kotlin("jvm") version "2.0.21"
@@ -87,6 +89,16 @@ subprojects {
                     }
                 }
             }
+        }
+    }
+
+    tasks.withType<org.jreleaser.gradle.plugin.tasks.JReleaserDeployTask> {
+        dependsOn("createJReleaserDir")
+    }
+
+    tasks.register("createJReleaserDir") {
+        doFirst {
+            mkdir("$buildDir/jreleaser")
         }
     }
 }
