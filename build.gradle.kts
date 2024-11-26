@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
+import org.jreleaser.model.Active
 plugins {
     kotlin("jvm") version "2.0.21"
     id("maven-publish")
     id("signing")
-    id("org.jreleaser") version "1.9.0"
+    id("org.jreleaser") version "1.15.0"
     id("com.palantir.git-version") version "3.1.0"
 }
 
@@ -111,32 +111,24 @@ allprojects {
 }
 
 jreleaser {
-    project {
-        copyright.set("2024 Ludovic Dorival")
-    }
+    gitRootSearch.set(true)
     signing {
-        active.set(true)
-        armored.set(true)
-    }
-    deploy {
-        maven {
-            nexus2 {
-                create("maven-central") {
-                    active.set(true)
-                    url.set("https://s01.oss.sonatype.org/service/local")
-                    snapshotUrl.set("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-                    closeRepository.set(true)
-                    releaseRepository.set(true)
-                    stagingRepositories.add("build/staging-deploy")
-                    
-                    authentication {
-                        username.set(System.getenv("OSSRH_USERNAME"))
-                        password.set(System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD"))
-                    }
-                }
-            }
+        active.set(Active.ALWAYS)
+    armored.set(true)
+  }
+  deploy {
+    maven {
+      mavenCentral {
+        create("sonatype") {
+            password.set(System.getenv("MAVEN_CENTRAL_PASSWORD"))
+            username.set(System.getenv("MAVEN_CENTRAL_USERNAME"))
+            active.set(Active.ALWAYS)
+            url.set("https://central.sonatype.com/api/v1/publisher")
+            stagingRepository("target/staging-deploy")
         }
+      }
     }
+  }
 }
 
 project(":pact-jvm-mockk-core") {
