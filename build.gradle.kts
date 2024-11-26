@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     id("maven-publish")
     id("signing")
-    id("org.jreleaser") version "1.9.0"
+    id("org.jreleaser") version "1.15.0"
     id("com.palantir.git-version") version "3.1.0"
 }
 
