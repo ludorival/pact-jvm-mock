@@ -1,41 +1,44 @@
+// Plugin imports and declarations
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jreleaser.model.Active
+
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("maven-publish")
-    id("signing")
     id("org.jreleaser") version "1.15.0"
     id("com.palantir.git-version") version "3.1.0"
 }
 
-
+// Root project configuration
 val gitVersion: groovy.lang.Closure<String> by extra
 
 group = "io.github.ludorival"
 version = gitVersion().replace(".dirty", "-SNAPSHOT")
+
+// Common configuration for all subprojects
 subprojects {
     group = rootProject.group
     version = rootProject.version
+    
     apply {
         plugin("kotlin")
-        plugin("maven-publish")
-        plugin("signing")
     }
-
-    group = "io.github.ludorival"
 
     repositories {
         mavenCentral()
     }
+
+    // Java configuration
     java {
         withJavadocJar()
         withSourcesJar()
         sourceCompatibility = JavaVersion.VERSION_17
     }
 
+    // Task configurations
     tasks.getByName<Test>("test") {
         useJUnitPlatform()
     }
+
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
     }
@@ -50,87 +53,49 @@ subprojects {
         enabled = true
     }
 
-
-    publishing {
-        publications {
-            create<MavenPublication>("main") {
-                from(this@subprojects.components.getByName("java"))
-                pom {
-                    name.set(this@subprojects.name)
-                    description.set("Pact JVM Mock - Leverage existing Mocks (${this@subprojects.name})")
-                    url.set("https://github.com/ludorival/pact-jvm-mock")
-                    licenses {
-                        license {
-                            name.set("The Apache Software License, Version 2.0")
-                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                        }
-                    }
-                    developers {
-                        developer {
-                            id.set("ludorival")
-                            name.set("Ludovic Dorival")
-                            email.set("ludorival@gmail.com")
-                        }
-                    }
-                    scm {
-                        connection.set("scm:git:git://github.com/ludorival/pact-jvm-mock.git")
-                        developerConnection.set("scm:git:ssh://github.com/ludorival/pact-jvm-mock.git")
-                        url.set("https://github.com/ludorival/pact-jvm-mock")
-                    }
-
-                }
+    // JReleaser configuration
+    jreleaser {
+        gitRootSearch.set(true)
+        project {
+            name.set(this@subprojects.name)
+            authors.set(listOf("Ludovic Dorival"))
+            license.set("The Apache Software License, Version 2.0")
+            links {
+                homepage.set("https://github.com/ludorival/pact-jvm-mock")
+                bugTracker.set("https://github.com/ludorival/pact-jvm-mock/issues")
             }
-
-
+            inceptionYear.set("2024")
         }
-        repositories {
+
+        signing {
+            active.set(Active.ALWAYS)
+            armored.set(true)
+        }
+
+        deploy {
             maven {
-                name = "OSSRH"
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = findProperty("maven.username")?.toString() ?: System.getenv("OSSRH_USERNAME")
-                    password =
-                        findProperty("maven.password")?.toString() ?: System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD")
+                mavenCentral {
+                    create("sonatype") {
+                        password.set(System.getenv("MAVEN_CENTRAL_PASSWORD"))
+                        username.set(System.getenv("MAVEN_CENTRAL_USERNAME"))
+                        active.set(Active.ALWAYS)
+                        url.set("https://central.sonatype.com/api/v1/publisher")
+                        stagingRepository("target/staging-deploy")
+                    }
                 }
-
             }
         }
     }
-
-    signing {
-        sign(publishing.publications["main"])
-    }
-
-
 }
 
+// Repository configuration for all projects
 allprojects {
     repositories {
         mavenCentral()
     }
 }
 
-jreleaser {
-    gitRootSearch.set(true)
-    signing {
-        active.set(Active.ALWAYS)
-    armored.set(true)
-  }
-  deploy {
-    maven {
-      mavenCentral {
-        create("sonatype") {
-            password.set(System.getenv("MAVEN_CENTRAL_PASSWORD"))
-            username.set(System.getenv("MAVEN_CENTRAL_USERNAME"))
-            active.set(Active.ALWAYS)
-            url.set("https://central.sonatype.com/api/v1/publisher")
-            stagingRepository("target/staging-deploy")
-        }
-      }
-    }
-  }
-}
-
+// Individual project dependencies
 project(":pact-jvm-mockk-core") {
     dependencies {
         compileOnly("io.mockk:mockk:1.13.13")
