@@ -59,6 +59,8 @@ subprojects {
         gitRootSearch.set(true)
         project {
             name.set(this@subprojects.name)
+            description.set("Pact JVM Mock - Leverage existing Mocks (${this@subprojects.name})")
+            copyright.set("Copyright 2023 Ludovic Dorival")
             authors.set(listOf("Ludovic Dorival"))
             license.set("The Apache Software License, Version 2.0")
             links {
