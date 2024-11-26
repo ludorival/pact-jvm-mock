@@ -21,6 +21,7 @@ subprojects {
     
     apply {
         plugin("kotlin")
+        plugin("org.jreleaser")
     }
 
     repositories {
