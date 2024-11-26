@@ -39,12 +39,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
-          
-      - name: Setup GPG
-        run: |
-          echo "${{ secrets.OSSRH_GPG_SECRET_KEY }}" > secret-keys.gpg.asc
-          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}" \
-          --output secret-keys.gpg secret-keys.gpg.asc
+        
 
       - name: Deploy with JReleaser
         env:
