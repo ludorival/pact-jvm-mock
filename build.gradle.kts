@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     id("maven-publish")
     id("signing")
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+    id("org.jreleaser") version "1.9.0"
     id("com.palantir.git-version") version "3.1.0"
 }
 
@@ -110,13 +110,31 @@ allprojects {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            username.set(findProperty("maven.username")?.toString() ?: System.getenv("OSSRH_USERNAME"))
-            password.set(findProperty("maven.password")?.toString() ?: System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD"))
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+jreleaser {
+    project {
+        copyright.set("2024 Ludovic Dorival")
+    }
+    signing {
+        active.set(true)
+        armored.set(true)
+    }
+    deploy {
+        maven {
+            nexus2 {
+                create("maven-central") {
+                    active.set(true)
+                    url.set("https://s01.oss.sonatype.org/service/local")
+                    snapshotUrl.set("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                    closeRepository.set(true)
+                    releaseRepository.set(true)
+                    stagingRepositories.add("build/staging-deploy")
+                    
+                    authentication {
+                        username.set(System.getenv("OSSRH_USERNAME"))
+                        password.set(System.getenv("OSSRH_GPG_SECRET_KEY_PASSWORD"))
+                    }
+                }
+            }
         }
     }
 }
