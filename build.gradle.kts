@@ -8,6 +8,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     id("org.jreleaser") version "1.15.0"
     id("com.palantir.git-version") version "3.1.0"
+    id("maven-publish")
 }
 
 // Root project configuration
@@ -24,6 +25,7 @@ subprojects {
     apply {
         plugin("kotlin")
         plugin("org.jreleaser")
+        plugin("maven-publish")
     }
 
     repositories {
@@ -56,6 +58,42 @@ subprojects {
         enabled = true
     }
 
+    publishing {
+        publications {
+            create<MavenPublication>("main") {
+                from(this@subprojects.components.getByName("java"))
+                pom {
+                    name.set("Pact JVM Mock (${this@subprojects.name})")
+                    description.set("Pact JVM Mock - Leverage existing Mocks (${this@subprojects.name})")
+                    url.set("https://github.com/ludorival/pact-jvm-mock")
+                    licenses {
+                        license {
+                            name.set("The Apache Software License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("ludorival")
+                            name.set("Ludovic Dorival")
+                            email.set("ludorival@gmail.com")
+                        }
+                    }
+                    scm {
+                        connection.set("scm:git:git://github.com/ludorival/pact-jvm-mock.git")
+                        developerConnection.set("scm:git:ssh://github.com/ludorival/pact-jvm-mock.git")
+                        url.set("https://github.com/ludorival/pact-jvm-mock")
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                url = uri("$buildDir/staging-deploy")
+            }
+        }
+    }
+
     // JReleaser configuration
     jreleaser {
         gitRootSearch.set(true)
@@ -81,11 +119,12 @@ subprojects {
             maven {
                 mavenCentral {
                     create("sonatype") {
+                        applyMavenCentralRules.set(true)
                         password.set(System.getenv("MAVEN_CENTRAL_PASSWORD"))
                         username.set(System.getenv("MAVEN_CENTRAL_USERNAME"))
                         active.set(Active.ALWAYS)
                         url.set("https://central.sonatype.com/api/v1/publisher")
-                        stagingRepository("target/staging-deploy")
+                        stagingRepository("build/staging-deploy")
                     }
                 }
             }
