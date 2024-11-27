@@ -28,14 +28,8 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
      
-      - name: Setup GPG
-        run: |
-          echo "${{ secrets.OSSRH_GPG_SECRET_KEY }}" > secret-keys.gpg.asc
-          gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}" \
-          --output secret-keys.gpg secret-keys.gpg.asc
-
       - name: Deploy with JReleaser
-        # if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
