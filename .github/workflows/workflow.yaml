@@ -38,9 +38,9 @@ jobs:
         run: |
           # Create a temporary GPG home
           export GNUPGHOME=$(mktemp -d)
-          # Import the secret key
-          echo "${{ secrets.OSSRH_GPG_SECRET_KEY }}" | base64 -d | gpg --import --batch --yes
-          # Export the public key and set it as an environment variable
+          # Import the secret key (for base64 encoded armored key)
+          echo "${{ secrets.OSSRH_GPG_SECRET_KEY }}" | base64 -d | gpg --batch --import
+          # Export the public key
           JRELEASER_GPG_PUBLIC_KEY=$(gpg --armor --export | base64 -w0)
           echo "JRELEASER_GPG_PUBLIC_KEY=${JRELEASER_GPG_PUBLIC_KEY}" >> $GITHUB_ENV
           # Clean up
