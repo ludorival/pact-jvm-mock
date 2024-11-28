@@ -40,4 +40,5 @@ abstract class PactMockkAdapter {
     abstract fun <T> Result<T>.getResponse(): Pact.Interaction.Response
 
 
+    open fun <T> returnsResult(result: Result<T>) = result.getOrThrow()
 }

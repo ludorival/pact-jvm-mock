@@ -2,18 +2,22 @@ package io.github.ludorival.pactjvm.mockk.spring
 
 import io.github.ludorival.pactjvm.mockk.Pact
 import io.github.ludorival.pactjvm.mockk.Pact.Interaction.Request.Method
+import io.github.ludorival.pactjvm.mockk.PactMockResponseError
 import io.github.ludorival.pactjvm.mockk.PactMockkAdapter
 import io.mockk.Call
 import io.mockk.Invocation
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.DefaultUriBuilderFactory
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode
 import java.net.URI
+import java.nio.charset.StandardCharsets
 
 @Suppress("TooManyFunctions")
 class SpringRestTemplateMockkAdapter :
@@ -91,6 +95,7 @@ class SpringRestTemplateMockkAdapter :
             is ResponseEntity<*> -> response as ResponseEntity<Any>
             else                 -> when (exception) {
                 null                       -> ResponseEntity.ok(response)
+                is PactMockResponseError   -> exception.response as? ResponseEntity<Any> ?: error("Expect to provide a ResponseEntity")
                 is HttpStatusCodeException -> ResponseEntity.status(exception.statusCode)
                     .headers(exception.responseHeaders)
                     .body(exception.responseBodyAsString.ifEmpty { exception.statusText })
@@ -99,7 +104,24 @@ class SpringRestTemplateMockkAdapter :
             }
         }
     }
-
+    @Suppress("UNCHECKED_CAST")
+    override fun <T> returnsResult(result: Result<T>): T {
+        val exception = result.exceptionOrNull()
+        if (exception is PactMockResponseError) {
+            val responseEntity = exception.response as ResponseEntity<Any>
+            val statusCode : HttpStatus = responseEntity.statusCode as? HttpStatus ?: HttpStatus.valueOf(responseEntity.statusCode.value())
+            val body = responseEntity.body?.toString()
+            val bodyBytes = body?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0)
+            throw HttpClientErrorException.create(
+                statusCode,
+                statusCode.reasonPhrase,
+                responseEntity.headers,
+                bodyBytes,
+                StandardCharsets.UTF_8
+            )
+        }
+        return super.returnsResult(result)
+    }
 
     private fun ResponseEntity<Any>.asResponse(): Pact.Interaction.Response {
         return Pact.Interaction.Response(

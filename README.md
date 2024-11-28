@@ -212,13 +212,7 @@ every {
     options {
         providerStates = listOf("The request should return a 400 Bad request")
     }
-    throw HttpClientErrorException.create(
-        HttpStatus.BAD_REQUEST,
-        "The title contains unexpected character",
-        HttpHeaders.EMPTY,
-        null,
-        null
-    )
+    anError(ResponseEntity.badRequest().body("The title contains unexpected character"))
 }
 ```
 

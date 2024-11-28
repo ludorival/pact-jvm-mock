@@ -6,6 +6,8 @@ class PactMockKAnswerScope<T, B>(mockKAnswerScope: MockKAnswerScope<T, B>) {
 
     internal val pactOptions = InteractionOptions()
 
+    internal var errorResponse: Any? = null
+
     fun options(block: InteractionOptions.() -> Unit) = pactOptions.apply(block)
 
     val invocation = mockKAnswerScope.invocation
@@ -30,5 +32,7 @@ class PactMockKAnswerScope<T, B>(mockKAnswerScope: MockKAnswerScope<T, B>) {
     inline fun <reified T> arg(n: Int) = invocation.args[n] as T
 
     val scope = mockKAnswerScope
+
+    fun <E : Any> anError(response: E): Nothing = throw PactMockResponseError(response)
 
 }
