@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -41,8 +42,8 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
         run: |
           ./gradlew publish
-          ./gradlew :pact-jvm-mockk-core:jreleaserDeploy
           ./gradlew :pact-jvm-mockk-spring:jreleaserDeploy
+          ./gradlew :pact-jvm-mockk-core:jreleaserDeploy
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
