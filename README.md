@@ -1,6 +1,6 @@
 Pact JVM Mock
 =========================
-![Build status](https://github.com/ludorival/pact-jvm-mock/actions/workflows/workflow.yaml/badge.svg)
+![Build status](https://github.com/ludorival/pact-jvm-mock/actions/workflows/main.yaml/badge.svg)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ludorival/pact-jvm-mock)
 > A Kotlin library that leverages existing mocks to create Pact contract files, using the popular mocking
 > library [Mockk](https://github.com/mockk/mockk).
