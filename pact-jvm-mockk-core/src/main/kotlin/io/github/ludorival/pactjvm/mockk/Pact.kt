@@ -27,7 +27,7 @@ data class Pact(
         val response: Response
     ) {
 
-        data class ProviderState(val name: String)
+        data class ProviderState(val name: String, val params: Map<String, Any?>? = null)
         data class Request(
             val method: Method,
             val path: String,

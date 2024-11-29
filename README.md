@@ -156,7 +156,7 @@ Run your tests, and you should see the generated pact files in your `src/test/re
 
 ### Set a description
 
-By default, the description is the test method name. You can set a description for each interaction.
+By default, the description is building from the request details. You can set a description for each interaction.
 
 Use `willRespondWith` like
 
@@ -164,9 +164,7 @@ Use `willRespondWith` like
 every {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
 } willRespondWith {
-    options {
-        description = "get the user profile"
-    }
+    description("get the user profile")
     ResponseEntity.ok(
         USER_PROFILE
     )
@@ -186,10 +184,8 @@ To specify the provider states :
 every {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
 } willRespondWith {
-    options {
-        description = "get the user profile"
-        providerStates = listOf("The user has a preferred shopping list")
-    }
+    description("get the user profile")
+    providerState("The user has a preferred shopping list")
     ResponseEntity.ok(
         USER_PROFILE
     )
@@ -209,9 +205,7 @@ every {
         eq(ShoppingList::class.java)
     )
 } willRespondWith {
-    options {
-        providerStates = listOf("The request should return a 400 Bad request")
-    }
+    providerState("The request should return a 400 Bad request")
     anError(ResponseEntity.badRequest().body("The title contains unexpected character"))
 }
 ```

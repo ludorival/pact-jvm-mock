@@ -46,10 +46,10 @@ internal object PactMockk {
         )
     }
 
-    internal fun <T> interceptAndGet(call: Call, response: Result<T>, interactionOptions: InteractionOptions): T {
+    internal fun <T> interceptAndGet(call: Call, response: Result<T>, interactionBuilder: InteractionBuilder): T {
         val adapter = getAdapterFor(call)
         return if (adapter != null) {
-            val interaction = adapter.buildInteraction(call, response, interactionOptions)
+            val interaction = adapter.buildInteraction(call, response, interactionBuilder)
             addInteraction(interaction)
             adapter.returnsResult(response)
         } else response.getOrThrow()
