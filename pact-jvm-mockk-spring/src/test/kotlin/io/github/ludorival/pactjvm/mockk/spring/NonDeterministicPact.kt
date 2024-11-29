@@ -1,5 +1,6 @@
 package io.github.ludorival.pactjvm.mockk.spring
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.ludorival.pactjvm.mockk.PactOptions
 import io.github.ludorival.pactjvm.mockk.pactOptions
@@ -18,7 +19,7 @@ object NonDeterministicPact : BeforeAllCallback, AfterAllCallback {
     val CUSTOM_OBJECT_MAPPER: ObjectMapper = Jackson2ObjectMapperBuilder().serializerByType(
         LocalDate::class.java,
         serializerAsDefault<LocalDate>("2023-01-01")
-    ).build()
+    ).serializationInclusion(JsonInclude.Include.NON_NULL).build()
 
 
     override fun beforeAll(context: ExtensionContext?) {

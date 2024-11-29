@@ -237,6 +237,36 @@ init {
 
 ```
 
+### Configure matching rules
+
+You can specify matching rules for both requests and responses to make your contracts more flexible. This is useful when you want to define patterns rather than exact values.
+
+```kotlin
+every {
+    restTemplate.exchange(
+        match<URI> { it.path.contains("user-service") },
+        HttpMethod.GET,
+        any(),
+        any<ParameterizedTypeReference<List<User>>>()
+    )
+} willRespondWith {
+    description("list users")
+    // Define rules for request headers
+    requestMatchingRules {
+        header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
+    }
+    // Define rules for response body
+    responseMatchingRules {
+        body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
+    }
+    ResponseEntity.ok(listOf(USER_1, USER_2))
+}
+```
+
+In this example:
+- The request matching rule ensures the Authorization header matches the pattern "Bearer" followed by any string
+- The response matching rule specifies that each user ID in the array should match by type rather than exact value
+
 ### Change the pact directory
 
 By default, the generated pacts are stored in `src/test/resources/pacts`. You can configure that in the pact options:

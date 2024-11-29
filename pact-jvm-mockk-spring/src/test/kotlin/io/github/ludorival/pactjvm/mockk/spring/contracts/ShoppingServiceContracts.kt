@@ -7,6 +7,7 @@ import io.github.ludorival.pactjvm.mockk.spring.USER_ID
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingList
 import io.github.ludorival.pactjvm.mockk.willRespond
 import io.github.ludorival.pactjvm.mockk.willRespondWith
+import io.github.ludorival.pactjvm.mockk.Matcher
 import io.mockk.every
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
@@ -76,6 +77,12 @@ fun RestTemplate.willListTwoShoppingLists() = every {
     )
 } willRespondWith {
     description("list two shopping lists")
+    requestMatchingRules {
+        header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
+    }
+    responseMatchingRules {
+        body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
+    }
     println(
         "I can have access to $args - $matcher - " +
             "$self - $nArgs -${firstArg<Any>()} - ${secondArg<Any>()} ${thirdArg<Any>()} ${lastArg<Any>()}"

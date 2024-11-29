@@ -33,17 +33,26 @@ data class Pact(
             val path: String,
             val query: String? = null,
             val headers: Map<String, String>? = null,
-            val body: Any? = null
+            val body: Any? = null,
+            val matchingRules: MatchingRules? = null
         ) {
             enum class Method {
                 GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE
             }
         }
 
+        data class MatchingRules(
+            val body: Map<String, Matcher>? = null,
+            val header: Map<String, Matcher>? = null,
+            val path: Map<String, Matcher>? = null,
+            val query: Map<String, Matcher>? = null
+        )
+        
         data class Response(
             val body: Any?,
             val status: Int = 200,
-            val headers: Map<String, String>? = null
+            val headers: Map<String, String>? = null,
+            val matchingRules: MatchingRules? = null
         )
     }
 

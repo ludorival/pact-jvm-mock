@@ -6,13 +6,10 @@
     "name" : "shopping-service"
   },
   "interactions" : [ {
-    "providerStates" : null,
     "description" : "POST /shopping-service/user/123? returns 200",
     "request" : {
       "method" : "POST",
       "path" : "/shopping-service/user/123",
-      "query" : null,
-      "headers" : null,
       "body" : {
         "title" : "My shopping list"
       }
@@ -29,7 +26,6 @@
       "headers" : { }
     }
   }, {
-    "providerStates" : null,
     "description" : "list two shopping lists",
     "request" : {
       "method" : "GET",
@@ -38,7 +34,14 @@
       "headers" : {
         "Content-Type" : "application/json"
       },
-      "body" : null
+      "matchingRules" : {
+        "header" : {
+          "Authorization" : {
+            "match" : "regex",
+            "regex" : "Bearer .*"
+          }
+        }
+      }
     },
     "response" : {
       "body" : [ {
@@ -71,49 +74,43 @@
         "createdAt" : "2023-01-01"
       } ],
       "status" : 200,
-      "headers" : { }
+      "headers" : { },
+      "matchingRules" : {
+        "body" : {
+          "[*].id" : {
+            "match" : "type"
+          }
+        }
+      }
     }
   }, {
-    "providerStates" : null,
     "description" : "delete shopping item",
     "request" : {
       "method" : "DELETE",
-      "path" : "/shopping-service/user/123/list/2",
-      "query" : null,
-      "headers" : null,
-      "body" : null
+      "path" : "/shopping-service/user/123/list/2"
     },
     "response" : {
-      "body" : null,
       "status" : 200,
       "headers" : { }
     }
   }, {
-    "providerStates" : null,
     "description" : "update shopping list",
     "request" : {
       "method" : "PUT",
       "path" : "/shopping-service/user/123/list/2",
-      "query" : null,
-      "headers" : null,
       "body" : {
         "name" : "My updated shopping list"
       }
     },
     "response" : {
-      "body" : null,
       "status" : 200,
       "headers" : { }
     }
   }, {
-    "providerStates" : null,
     "description" : "GET /shopping-service/user/123/list/1? returns 200",
     "request" : {
       "method" : "GET",
-      "path" : "/shopping-service/user/123/list/1",
-      "query" : null,
-      "headers" : null,
-      "body" : null
+      "path" : "/shopping-service/user/123/list/1"
     },
     "response" : {
       "body" : {
@@ -135,13 +132,10 @@
       "headers" : { }
     }
   }, {
-    "providerStates" : null,
     "description" : "Patch a shopping item",
     "request" : {
       "method" : "PATCH",
       "path" : "/shopping-service/user/123/list/1",
-      "query" : null,
-      "headers" : null,
       "body" : {
         "id" : 2,
         "name" : "Banana",
@@ -159,15 +153,12 @@
     }
   }, {
     "providerStates" : [ {
-      "name" : "The request should return a 400 Bad request",
-      "params" : null
+      "name" : "The request should return a 400 Bad request"
     } ],
     "description" : "should return a 400 Bad request",
     "request" : {
       "method" : "POST",
       "path" : "/shopping-service/user/123",
-      "query" : null,
-      "headers" : null,
       "body" : {
         "title" : "Unexpected character \\s"
       }
@@ -178,13 +169,10 @@
       "headers" : { }
     }
   }, {
-    "providerStates" : null,
     "description" : "create empty shopping list",
     "request" : {
       "method" : "POST",
       "path" : "/shopping-service/user/123",
-      "query" : null,
-      "headers" : null,
       "body" : {
         "title" : "My Shopping list"
       }
