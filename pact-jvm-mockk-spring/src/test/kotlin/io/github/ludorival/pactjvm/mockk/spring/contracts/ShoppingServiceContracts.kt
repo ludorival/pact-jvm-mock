@@ -4,7 +4,7 @@ import io.github.ludorival.pactjvm.mockk.spring.EMPTY_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mockk.spring.PREFERRED_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mockk.spring.SHOPPING_LIST_TO_DELETE
 import io.github.ludorival.pactjvm.mockk.spring.USER_ID
-import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.shoppingservice.ShoppingList
+import io.github.ludorival.pactjvm.mockk.spring.providers.shoppingservice.ShoppingList
 import io.github.ludorival.pactjvm.mockk.willRespond
 import io.github.ludorival.pactjvm.mockk.willRespondWith
 import io.github.ludorival.pactjvm.mockk.Matcher
@@ -28,6 +28,10 @@ fun RestTemplate.willCreateShoppingList(description: String? = null) = every {
 } willRespondWith {
     description?.let {
         this.description(it)
+    }
+    providerState("the shopping list is empty", mapOf("userId" to USER_ID))
+    responseMatchingRules {
+        body("created_at", Matcher(Matcher.MatchEnum.TYPE))
     }
     ResponseEntity.ok(
         EMPTY_SHOPPING_LIST
@@ -82,6 +86,7 @@ fun RestTemplate.willListTwoShoppingLists() = every {
     }
     responseMatchingRules {
         body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
+        body("[*].created_at", Matcher(Matcher.MatchEnum.TYPE))
     }
     println(
         "I can have access to $args - $matcher - " +
@@ -101,7 +106,6 @@ fun RestTemplate.willDeleteShoppingItem() = every {
     )
 } willRespondWith {
     description("delete shopping item")
-
 }
 
 fun RestTemplate.willUpdateShoppingList() = every {

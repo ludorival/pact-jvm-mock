@@ -28,7 +28,9 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
       - name: Build with Gradle
-        run: ./gradlew build
+        run: |
+          ./gradlew build
+          ./gradlew contractTest
 
       - name: Deploy with JReleaser
         if: startsWith(github.ref, 'refs/tags/')
@@ -47,7 +49,7 @@ jobs:
         if: success() || failure()
         with:
           name: JUnit Tests
-          path: "*/build/test-results/test/*.xml"
+          path: "*/build/test-results/*/*.xml"
           reporter: java-junit
           fail-on-error: true
 

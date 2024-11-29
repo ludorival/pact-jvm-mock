@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.net.URI
+import java.time.LocalDateTime
 
 @ExtendWith(NonDeterministicPact::class)
 open class ShoppingListAppTest {
@@ -44,7 +45,9 @@ open class ShoppingListAppTest {
     protected lateinit var shoppingServiceClient: ShoppingServiceClient
 
     @BeforeEach
-    fun setUp() = MockKAnnotations.init(this)
+    fun setUp() = MockKAnnotations.init(this).also {
+        println("Test is started at ${LocalDateTime.now()}")
+    }
 
     @Test
     fun `should create a shopping list`() {
@@ -153,7 +156,7 @@ open class ShoppingListAppTest {
             restTemplate.willSetPreferredShoppingList()
 
         } `when` {
-            shoppingServiceClient.createShoppingList(USER_ID, "My shopping list")
+            shoppingServiceClient.createShoppingList(USER_ID, "My Shopping list")
         } and {
             userServiceClient.setPreferredShoppingList(USER_ID, it.id)
         } then {

@@ -18,6 +18,3 @@ inline fun <reified T> serializerAsDefault(defaultValue: String) =
 
 fun Pact.Interaction.getConsumerName() = request.path.split("/").first { it.isNotBlank() }
 
-
-internal val DEFAULT_OBJECT_MAPPER = ObjectMapper().apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
-
