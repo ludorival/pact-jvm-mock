@@ -3,6 +3,8 @@ package io.github.ludorival.pactjvm.mockk
 class InteractionBuilderImpl : InteractionBuilder {
 
     private var description: String? = null
+    private val requestMatchingRulesBuilder: MatchingRulesBuilder = MatchingRulesBuilder()
+    private val responseMatchingRulesBuilder: MatchingRulesBuilder = MatchingRulesBuilder()
     private val providerStates: MutableList<Pact.Interaction.ProviderState> = mutableListOf()
     override fun description(description: String): InteractionBuilder = apply { this.description = description }
 
@@ -15,9 +17,17 @@ class InteractionBuilderImpl : InteractionBuilder {
             description = description
                 ?: "${request.method} ${request.path}?${request.query ?: ""} returns ${response.status}",
             providerStates = providerStates.ifEmpty { null },
-            request = request,
-            response = response
+            request = request.copy(matchingRules = requestMatchingRulesBuilder.build()) ,
+            response = response.copy(matchingRules = responseMatchingRulesBuilder.build())
         )
+    }
+
+    override fun responseMatchingRules(block: MatchingRulesBuilder.() -> Unit): InteractionBuilder = apply {
+        responseMatchingRulesBuilder.apply(block)
+    }
+
+    override fun requestMatchingRules(block: MatchingRulesBuilder.() -> Unit): InteractionBuilder = apply {
+        requestMatchingRulesBuilder.apply(block)
     }
 
 }
