@@ -5,8 +5,6 @@ on:
     branches: [ main ]
     tags:
       - '*'
-  pull_request:
-    branches: [ main ]
 
 
 permissions:
@@ -31,7 +29,7 @@ jobs:
         uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
       - name: Build with Gradle
         run: ./gradlew build
-     
+
       - name: Deploy with JReleaser
         if: startsWith(github.ref, 'refs/tags/')
         env:
@@ -52,7 +50,7 @@ jobs:
           path: "*/build/test-results/test/*.xml"
           reporter: java-junit
           fail-on-error: true
-        
+
   create-release:
     needs: build
     runs-on: ubuntu-latest
