@@ -7,7 +7,7 @@
   },
   "interactions" : [ {
     "providerStates" : null,
-    "description" : "http://localhost:1234/user-service/v1/user/123",
+    "description" : "PUT /user-service/v1/user/123? returns 200",
     "request" : {
       "method" : "PUT",
       "path" : "/user-service/v1/user/123",
@@ -31,7 +31,10 @@
     }
   }, {
     "providerStates" : [ {
-      "name" : "The user has a preferred shopping list"
+      "name" : "The user has a preferred shopping list",
+      "params" : {
+        "userId" : 123
+      }
     } ],
     "description" : "get the user profile",
     "request" : {

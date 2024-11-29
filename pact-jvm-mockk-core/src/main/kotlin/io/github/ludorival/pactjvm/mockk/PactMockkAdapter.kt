@@ -10,22 +10,18 @@ abstract class PactMockkAdapter {
     open fun <T> buildInteraction(
         call: Call,
         result: Result<T>,
-        interactionOptions: InteractionOptions
+        interactionBuilder: InteractionBuilder
     ): Pact.Interaction {
         val uri = call.getUri()
         val body = call.getRequestBody()
-        return Pact.Interaction(
-            description = interactionOptions.description ?: "$uri",
-            providerStates = interactionOptions.providerStates?.map { Pact.Interaction.ProviderState(it) },
-            request = Pact.Interaction.Request(
-                method = call.getHttpMethod(),
-                path = uri.path,
-                query = uri.query,
-                headers = call.getHttpHeaders(),
-                body = body
-            ),
-            response = result.getResponse()
-        )
+        return interactionBuilder.build(request = Pact.Interaction.Request(
+            method = call.getHttpMethod(),
+            path = uri.path,
+            query = uri.query,
+            headers = call.getHttpHeaders(),
+            body = body
+        ),
+        response = result.getResponse())
     }
 
 

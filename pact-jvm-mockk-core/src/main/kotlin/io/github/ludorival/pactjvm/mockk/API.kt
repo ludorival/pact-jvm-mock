@@ -23,7 +23,7 @@ infix fun <T, B> MockKStubScope<T, B>.willRespondWith(answer: PactMockKAnswerSco
     return answers {
         val pactScope = PactMockKAnswerScope<T, B>(this)
         val result = runCatching { answer.invoke(pactScope, it) }
-        PactMockk.interceptAndGet(it, result, pactScope.pactOptions)
+        PactMockk.interceptAndGet(it, result, pactScope)
     }
 }
 

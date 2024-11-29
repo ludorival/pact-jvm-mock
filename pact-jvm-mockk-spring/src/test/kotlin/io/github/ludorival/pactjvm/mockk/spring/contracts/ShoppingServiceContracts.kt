@@ -25,8 +25,8 @@ fun RestTemplate.willCreateShoppingList(description: String? = null) = every {
         eq(ShoppingList::class.java)
     )
 } willRespondWith {
-    options {
-        this.description = description
+    description?.let {
+        this.description(it)
     }
     ResponseEntity.ok(
         EMPTY_SHOPPING_LIST
@@ -41,10 +41,8 @@ fun RestTemplate.willReturnAnErrorWhenCreateShoppingList() = every {
         eq(ShoppingList::class.java)
     )
 } willRespondWith {
-    options {
-        description = "should return a 400 Bad request"
-        providerStates = listOf("The request should return a 400 Bad request")
-    }
+    description("should return a 400 Bad request")
+    providerState("The request should return a 400 Bad request")
     anError(ResponseEntity.badRequest().body("The title contains unexpected character"))
 }
 
@@ -64,9 +62,7 @@ fun RestTemplate.willPatchShoppingItem() = every {
         eq(ShoppingList.Item::class.java)
     )
 } willRespondWith {
-    options {
-        description = "Patch a shopping item"
-    }
+    description("Patch a shopping item")
     val item = arg<ShoppingList.Item>(1)
     item
 }
@@ -79,9 +75,7 @@ fun RestTemplate.willListTwoShoppingLists() = every {
         any<ParameterizedTypeReference<List<ShoppingList>>>()
     )
 } willRespondWith {
-    options {
-        description = "list two shopping lists"
-    }
+    description("list two shopping lists")
     println(
         "I can have access to $args - $matcher - " +
             "$self - $nArgs -${firstArg<Any>()} - ${secondArg<Any>()} ${thirdArg<Any>()} ${lastArg<Any>()}"
@@ -99,9 +93,8 @@ fun RestTemplate.willDeleteShoppingItem() = every {
         match<URI> { it.path.contains("shopping-service") },
     )
 } willRespondWith {
-    options {
-        description = "delete shopping item"
-    }
+    description("delete shopping item")
+
 }
 
 fun RestTemplate.willUpdateShoppingList() = every {
@@ -110,9 +103,7 @@ fun RestTemplate.willUpdateShoppingList() = every {
         any()
     )
 } willRespondWith {
-    options {
-        description = "update shopping list"
-    }
+    description("update shopping list")
     println("I can have access to scope $scope")
 
 }

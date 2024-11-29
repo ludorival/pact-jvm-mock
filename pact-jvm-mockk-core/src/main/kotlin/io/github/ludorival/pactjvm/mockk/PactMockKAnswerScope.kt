@@ -2,13 +2,7 @@ package io.github.ludorival.pactjvm.mockk
 
 import io.mockk.MockKAnswerScope
 
-class PactMockKAnswerScope<T, B>(mockKAnswerScope: MockKAnswerScope<T, B>) {
-
-    internal val pactOptions = InteractionOptions()
-
-    internal var errorResponse: Any? = null
-
-    fun options(block: InteractionOptions.() -> Unit) = pactOptions.apply(block)
+class PactMockKAnswerScope<T, B>(mockKAnswerScope: MockKAnswerScope<T, B>): InteractionBuilder by InteractionBuilderImpl() {
 
     val invocation = mockKAnswerScope.invocation
     val matcher = mockKAnswerScope.matcher

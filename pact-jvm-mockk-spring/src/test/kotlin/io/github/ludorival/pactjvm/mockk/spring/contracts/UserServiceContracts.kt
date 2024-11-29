@@ -1,5 +1,6 @@
 package io.github.ludorival.pactjvm.mockk.spring.contracts
 
+import io.github.ludorival.pactjvm.mockk.spring.USER_ID
 import io.github.ludorival.pactjvm.mockk.spring.USER_PROFILE
 import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
 import io.github.ludorival.pactjvm.mockk.willRespondWith
@@ -11,10 +12,8 @@ import org.springframework.web.client.RestTemplate
 fun RestTemplate.willReturnUserProfile() = every {
     getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java, *anyVararg())
 } willRespondWith {
-    options {
-        description = "get the user profile"
-        providerStates = listOf("The user has a preferred shopping list")
-    }
+    description("get the user profile")
+    providerState("The user has a preferred shopping list", mapOf("userId" to USER_ID))
     ResponseEntity.ok(
         USER_PROFILE
     )

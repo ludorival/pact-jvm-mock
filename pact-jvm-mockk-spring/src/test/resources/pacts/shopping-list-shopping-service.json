@@ -7,7 +7,7 @@
   },
   "interactions" : [ {
     "providerStates" : null,
-    "description" : "/shopping-service/user/123",
+    "description" : "POST /shopping-service/user/123? returns 200",
     "request" : {
       "method" : "POST",
       "path" : "/shopping-service/user/123",
@@ -107,7 +107,7 @@
     }
   }, {
     "providerStates" : null,
-    "description" : "/shopping-service/user/123/list/1",
+    "description" : "GET /shopping-service/user/123/list/1? returns 200",
     "request" : {
       "method" : "GET",
       "path" : "/shopping-service/user/123/list/1",
@@ -159,7 +159,8 @@
     }
   }, {
     "providerStates" : [ {
-      "name" : "The request should return a 400 Bad request"
+      "name" : "The request should return a 400 Bad request",
+      "params" : null
     } ],
     "description" : "should return a 400 Bad request",
     "request" : {
