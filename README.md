@@ -210,14 +210,9 @@ every {
 }
 ```
 
-### Make your contract deterministic
+### Configure custom JSON ObjectMapper
 
-If the Pact contracts change everytime tests have launched,
-it makes overload your CICD by verifying the contracts upon the providers whereas nothing functional as changed.
-To make your contract deterministic, you will need to provide a custom serializer for the type you want to be invariant.
-
-For example, let's say you have a date which will be generated at each test, you can pass a custom value
-for `determineConsumerFromUrl`
+You can specify a custom ObjectMapper for serializing request/response bodies for specific providers. This is useful when you need special serialization handling, like custom date formats or naming strategies.
 
 ```kotlin
 // MyPactMock.kt
@@ -227,16 +222,42 @@ init {
         isDeterministic = true // <-- force to be deterministic
         addAdapter(SpringRestTemplateMockkAdapter())
         objectMapperCustomizer = {
-            Jackson2ObjectMapperBuilder().serializerByType(
-                LocalDate::class.java,
-                serializerAsDefault<LocalDate>("2023-01-01")
-            ).build()
+            Jackson2ObjectMapperBuilder()
+                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build()
         }
     }
 }
 
 ```
 
+### Make your contract deterministic
+
+To make your contract deterministic, you will need to provide a custom serializer for the type you want to be invariant.
+
+For example, let's say you have a date which will be generated at each test, you can pass a custom value
+for `determineConsumerFromUrl`
+
+
+```kotlin
+// MyPactMock.kt
+init {
+    pactOptions {
+        consumer = "my-service"
+        isDeterministic = true // <-- force to be deterministic
+        addAdapter(SpringRestTemplateMockkAdapter())
+        objectMapperCustomizer = {
+            Jackson2ObjectMapperBuilder()
+                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                .serializerByType(
+                    LocalDate::class.java,
+                    serializerAsDefault<LocalDate>("2023-01-01")
+            ).build()
+        }
+    }
+}
+
+```
 ### Configure matching rules
 
 You can specify matching rules for both requests and responses to make your contracts more flexible. This is useful when you want to define patterns rather than exact values.
