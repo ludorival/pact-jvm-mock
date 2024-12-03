@@ -24,14 +24,14 @@
       "body" : {
         "id" : 1,
         "title" : "My Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ ],
-        "createdAt" : [ 2023, 1, 1 ]
+        "created_at" : "2023-01-01"
       },
       "status" : 200,
       "headers" : { },
       "matchingRules" : {
-        "$.body.createdAt" : {
+        "$.body.created_at" : {
           "match" : "type"
         }
       }
@@ -57,7 +57,7 @@
       "body" : [ {
         "id" : 1,
         "title" : "My Favorite Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ {
           "id" : 1,
           "name" : "Apple",
@@ -67,11 +67,11 @@
           "name" : "Banana",
           "quantity" : 2
         } ],
-        "createdAt" : [ 2023, 1, 1 ]
+        "created_at" : "2023-01-01"
       }, {
         "id" : 2,
         "title" : "My Shopping list to delete",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ {
           "id" : 1,
           "name" : "Chicken",
@@ -81,7 +81,7 @@
           "name" : "Beed",
           "quantity" : 1
         } ],
-        "createdAt" : [ 2023, 1, 1 ]
+        "created_at" : "2023-01-01"
       } ],
       "status" : 200,
       "headers" : { },
@@ -89,7 +89,7 @@
         "$.body[*].id" : {
           "match" : "type"
         },
-        "$.body[*].createdAt" : {
+        "$.body[*].created_at" : {
           "match" : "type"
         }
       }
@@ -127,7 +127,7 @@
       "body" : {
         "id" : 1,
         "title" : "My Favorite Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ {
           "id" : 1,
           "name" : "Apple",
@@ -137,7 +137,7 @@
           "name" : "Banana",
           "quantity" : 2
         } ],
-        "createdAt" : [ 2023, 1, 1 ]
+        "created_at" : "2023-01-01"
       },
       "status" : 200,
       "headers" : { }
@@ -198,14 +198,14 @@
       "body" : {
         "id" : 1,
         "title" : "My Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ ],
-        "createdAt" : [ 2023, 1, 1 ]
+        "created_at" : "2023-01-01"
       },
       "status" : 200,
       "headers" : { },
       "matchingRules" : {
-        "$.body.createdAt" : {
+        "$.body.created_at" : {
           "match" : "type"
         }
       }
