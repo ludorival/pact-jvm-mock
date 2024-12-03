@@ -8,7 +8,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
-
+import io.github.ludorival.pactjvm.mockk.spring.providers.shoppingservice.ShoppingList
 class ShoppingServiceClient(private val restTemplate: RestTemplate) {
 
     fun getAllShoppingLists(userId: Long): List<ShoppingList> {
@@ -17,6 +17,7 @@ class ShoppingServiceClient(private val restTemplate: RestTemplate) {
             HttpMethod.GET,
             HttpEntity<Any>(HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_JSON
+                set("Authorization", "Bearer token123")
             }),
             object : ParameterizedTypeReference<List<ShoppingList>>() {}).safeValue()
     }

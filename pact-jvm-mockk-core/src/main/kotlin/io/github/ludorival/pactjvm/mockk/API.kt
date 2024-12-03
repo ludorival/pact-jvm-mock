@@ -34,6 +34,6 @@ infix fun <T, B> MockKStubScope<T, B>.willRespond(returnValue: T): MockKAddition
 
 typealias DetermineProviderFromInteraction = (Pact.Interaction) -> String
 
-typealias ObjectMapperCustomizer = (String) -> ObjectMapper
+typealias ObjectMapperCustomizer = (String) -> ObjectMapper?
 
 

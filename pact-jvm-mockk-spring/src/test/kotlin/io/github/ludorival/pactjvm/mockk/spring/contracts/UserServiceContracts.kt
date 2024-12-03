@@ -2,7 +2,7 @@ package io.github.ludorival.pactjvm.mockk.spring.contracts
 
 import io.github.ludorival.pactjvm.mockk.spring.USER_ID
 import io.github.ludorival.pactjvm.mockk.spring.USER_PROFILE
-import io.github.ludorival.pactjvm.mockk.spring.fakeapplication.infra.userservice.UserProfile
+import io.github.ludorival.pactjvm.mockk.spring.providers.userservice.UserProfile
 import io.github.ludorival.pactjvm.mockk.willRespondWith
 import io.mockk.every
 import org.springframework.http.ResponseEntity

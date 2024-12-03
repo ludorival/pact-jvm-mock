@@ -41,7 +41,7 @@ internal object PactMockk {
         pacts[consumerName] = pactToWrite.addInteraction(
             serializeRequestAndResponse(
                 interaction,
-                pactToWrite.providerMetaData.customObjectMapper
+                pactToWrite.objectMapper
             )
         )
     }

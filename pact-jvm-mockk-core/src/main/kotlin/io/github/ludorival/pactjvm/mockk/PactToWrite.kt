@@ -1,5 +1,7 @@
 package io.github.ludorival.pactjvm.mockk
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch
 import java.io.File
 import java.nio.file.Files
@@ -21,6 +23,8 @@ internal data class PactToWrite(
 
     private val descriptions = mutableListOf<String>()
     private val diffMatchPatch = DiffMatchPatch()
+
+    val objectMapper get() = providerMetaData.customObjectMapper ?: PACT_OBJECT_MAPPER
 
     fun addInteraction(interaction: Pact.Interaction): PactToWrite {
         val existing = interactionsByDescription[interaction.description]
@@ -111,7 +115,7 @@ internal data class PactToWrite(
     }
 
     private fun Any.toPrettyJson() =
-        providerMetaData.customObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
+        PACT_OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this)
 
     companion object {
         private const val RESET = "\u001B[0m"
@@ -120,5 +124,7 @@ internal data class PactToWrite(
 
         fun green(s: String): String = "$GREEN$s$RESET"
         fun red(s: String): String = "$RED$s$RESET"
+
+        private val PACT_OBJECT_MAPPER = ObjectMapper().apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
     }
 }

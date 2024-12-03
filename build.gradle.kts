@@ -41,7 +41,17 @@ subprojects {
 
     // Task configurations
     tasks.getByName<Test>("test") {
-        useJUnitPlatform()
+        useJUnitPlatform {
+            // Run non-contract tests first
+            includeTags("!contract-test")
+        }
+    }
+    tasks.register<Test>("contractTest") {
+        description = "Runs contract tests"
+        group = "verification"
+        useJUnitPlatform {
+            includeTags("contract-test")
+        }
     }
 
     tasks.withType<KotlinCompile> {
@@ -174,5 +184,10 @@ project(":pact-jvm-mockk-spring") {
         testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
         testImplementation("io.github.ludorival:kotlin-tdd:2.2.0")
         testImplementation("org.springframework:spring-web:6.2.0")
+        testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.3")
+        testImplementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
+        testImplementation("au.com.dius.pact.provider:junit5:4.6.15")
+        testImplementation("au.com.dius.pact.provider:junit5spring:4.6.15")
+        testImplementation("au.com.dius.pact.provider:spring:4.6.15")
     }
 }

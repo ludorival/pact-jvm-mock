@@ -6,6 +6,8 @@ import org.springframework.http.RequestEntity
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
+import io.github.ludorival.pactjvm.mockk.spring.providers.userservice.UserPreferences
+import io.github.ludorival.pactjvm.mockk.spring.providers.userservice.UserProfile  
 
 class UserServiceClient(private val restTemplate: RestTemplate) {
 

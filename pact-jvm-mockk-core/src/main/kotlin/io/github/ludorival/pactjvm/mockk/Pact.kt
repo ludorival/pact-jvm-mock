@@ -41,12 +41,7 @@ data class Pact(
             }
         }
 
-        data class MatchingRules(
-            val body: Map<String, Matcher>? = null,
-            val header: Map<String, Matcher>? = null,
-            val path: Map<String, Matcher>? = null,
-            val query: Map<String, Matcher>? = null
-        )
+        
         
         data class Response(
             val body: Any?,
@@ -67,3 +62,4 @@ data class Pact(
         val DEFAULT_METADATA = MetaData()
     }
 }
+typealias MatchingRules = Map<String, Matcher>

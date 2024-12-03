@@ -1,0 +1,25 @@
+# logging:
+#   level:
+#     org.springframework: DEBUG
+#     root: INFO
+
+spring:
+  profiles:
+    active: shopping-service
+
+---
+spring:
+  config:
+    activate:
+      on-profile: shopping-service
+server:
+  port: 4000
+
+---
+spring:
+  config:
+    activate:
+      on-profile: user-service
+server:
+  port: 4001
+

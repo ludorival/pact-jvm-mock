@@ -6,24 +6,35 @@
     "name" : "shopping-service"
   },
   "interactions" : [ {
+    "providerStates" : [ {
+      "name" : "the shopping list is empty",
+      "params" : {
+        "userId" : 123
+      }
+    } ],
     "description" : "POST /shopping-service/user/123? returns 200",
     "request" : {
       "method" : "POST",
       "path" : "/shopping-service/user/123",
       "body" : {
-        "title" : "My shopping list"
+        "title" : "My Shopping list"
       }
     },
     "response" : {
       "body" : {
         "id" : 1,
         "title" : "My Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ ],
-        "createdAt" : "2023-01-01"
+        "created_at" : "2023-01-01"
       },
       "status" : 200,
-      "headers" : { }
+      "headers" : { },
+      "matchingRules" : {
+        "$.body.created_at" : {
+          "match" : "type"
+        }
+      }
     }
   }, {
     "description" : "list two shopping lists",
@@ -32,14 +43,13 @@
       "path" : "/shopping-service/user/123",
       "query" : "limit=30",
       "headers" : {
-        "Content-Type" : "application/json"
+        "Content-Type" : "application/json",
+        "Authorization" : "Bearer token123"
       },
       "matchingRules" : {
-        "header" : {
-          "Authorization" : {
-            "match" : "regex",
-            "regex" : "Bearer .*"
-          }
+        "$.header.Authorization" : {
+          "match" : "regex",
+          "regex" : "Bearer .*"
         }
       }
     },
@@ -47,7 +57,7 @@
       "body" : [ {
         "id" : 1,
         "title" : "My Favorite Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ {
           "id" : 1,
           "name" : "Apple",
@@ -57,11 +67,11 @@
           "name" : "Banana",
           "quantity" : 2
         } ],
-        "createdAt" : "2023-01-01"
+        "created_at" : "2023-01-01"
       }, {
         "id" : 2,
         "title" : "My Shopping list to delete",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ {
           "id" : 1,
           "name" : "Chicken",
@@ -71,15 +81,16 @@
           "name" : "Beed",
           "quantity" : 1
         } ],
-        "createdAt" : "2023-01-01"
+        "created_at" : "2023-01-01"
       } ],
       "status" : 200,
       "headers" : { },
       "matchingRules" : {
-        "body" : {
-          "[*].id" : {
-            "match" : "type"
-          }
+        "$.body[*].id" : {
+          "match" : "type"
+        },
+        "$.body[*].created_at" : {
+          "match" : "type"
         }
       }
     }
@@ -116,7 +127,7 @@
       "body" : {
         "id" : 1,
         "title" : "My Favorite Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ {
           "id" : 1,
           "name" : "Apple",
@@ -126,7 +137,7 @@
           "name" : "Banana",
           "quantity" : 2
         } ],
-        "createdAt" : "2023-01-01"
+        "created_at" : "2023-01-01"
       },
       "status" : 200,
       "headers" : { }
@@ -169,6 +180,12 @@
       "headers" : { }
     }
   }, {
+    "providerStates" : [ {
+      "name" : "the shopping list is empty",
+      "params" : {
+        "userId" : 123
+      }
+    } ],
     "description" : "create empty shopping list",
     "request" : {
       "method" : "POST",
@@ -181,12 +198,17 @@
       "body" : {
         "id" : 1,
         "title" : "My Shopping list",
-        "userId" : 123,
+        "user_id" : 123,
         "items" : [ ],
-        "createdAt" : "2023-01-01"
+        "created_at" : "2023-01-01"
       },
       "status" : 200,
-      "headers" : { }
+      "headers" : { },
+      "matchingRules" : {
+        "$.body.created_at" : {
+          "match" : "type"
+        }
+      }
     }
   } ],
   "metadata" : {

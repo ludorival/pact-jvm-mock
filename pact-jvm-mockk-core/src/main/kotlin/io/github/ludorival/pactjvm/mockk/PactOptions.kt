@@ -16,7 +16,7 @@ class PactOptions private constructor(
         var pactDirectory: String = "./src/test/resources/pacts"
         var isDeterministic: Boolean = false
         var determineProviderFromInteraction: DetermineProviderFromInteraction = { it.getConsumerName() }
-        var objectMapperCustomizer: ObjectMapperCustomizer = { DEFAULT_OBJECT_MAPPER }
+        var objectMapperCustomizer: ObjectMapperCustomizer = { null }
         var pactMetaData: Pact.MetaData = Pact.DEFAULT_METADATA
         private val adapters: MutableList<PactMockkAdapter> = mutableListOf()
 
