@@ -186,7 +186,7 @@ project(":pact-jvm-mockk-spring") {
         testImplementation("org.springframework:spring-web:6.2.0")
         testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.3")
         testImplementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
-        testImplementation("au.com.dius.pact.provider:junit5:4.6.15")
+        testImplementation("au.com.dius.pact.provider:junit5:4.6.16")
         testImplementation("au.com.dius.pact.provider:junit5spring:4.6.15")
         testImplementation("au.com.dius.pact.provider:spring:4.6.15")
     }
