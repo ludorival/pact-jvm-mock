@@ -179,8 +179,8 @@ project(":pact-jvm-mockk-spring") {
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
         testImplementation("io.mockk:mockk:1.13.13")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.3")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
         testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
         testImplementation("io.github.ludorival:kotlin-tdd:2.2.0")
         testImplementation("org.springframework:spring-web:6.2.1")
