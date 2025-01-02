@@ -47,6 +47,14 @@ Or if you are using Maven:
     <scope>test</scope>
 </dependency>
 
+<!-- For intercepting Mockito calls -->
+<dependency>
+    <groupId>io.github.ludorival</groupId>
+    <artifactId>pact-jvm-mock-mockito</artifactId>
+    <version>${pactJvmMockVersion}</version>
+    <scope>test</scope>
+</dependency>
+
 <!-- For intercepting Spring RestTemplate calls -->
 <dependency>
     <groupId>io.github.ludorival</groupId>
@@ -317,3 +325,62 @@ check out the [contributing guidelines](CONTRIBUTING.md).
 ## License
 
 pact-jvm-mock is licensed under the [MIT License](LICENSE).
+
+### Using with Mockito (Java)
+
+If you're using Mockito with Java, you can use the following syntax with static imports:
+
+```java
+import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespond;
+import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespondWith;
+import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespondWithError;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+// Simple response
+willRespond(
+    when(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))),
+    ResponseEntity.ok(USER_PROFILE)
+);
+
+// With scope for description and provider state
+willRespondWith(
+    when(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))),
+    scope -> {
+        scope.description("Get user profile");
+        scope.providerState("User exists", Map.of("userId", "1"));
+        return ResponseEntity.ok(USER_PROFILE);
+    }
+);
+
+// Handling errors
+willRespondWithError(
+    when(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class))),
+    scope -> {
+        scope.description("Create user profile - validation error");
+        scope.providerState("Invalid user data", Collections.emptyMap());
+        return ResponseEntity.badRequest()
+                .body("Invalid user data: name cannot be empty and email must be valid");
+    }
+);
+```
+
+Note: Don't forget to configure your test class with the `@PactConsumer` annotation:
+
+```java
+@PactConsumer(MyPactOptions.class)
+public class MyTest {
+    public static class MyPactOptions {
+        public static final PactOptions pactOptions;
+        
+        static {
+            PactOptions.Builder builder = new PactOptions.Builder();
+            builder.setConsumer("my-consumer");
+            builder.addAdapter(new SpringRestTemplateMockkAdapter());
+            pactOptions = builder.build();
+        }
+    }
+    // ... test methods
+}
+```

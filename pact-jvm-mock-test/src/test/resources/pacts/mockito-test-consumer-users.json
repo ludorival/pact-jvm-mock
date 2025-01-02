@@ -1,0 +1,72 @@
+{
+  "consumer" : {
+    "name" : "mockito-test-consumer"
+  },
+  "provider" : {
+    "name" : "users"
+  },
+  "interactions" : [ {
+    "description" : "testWillRespondWithError",
+    "request" : {
+      "method" : "POST",
+      "path" : "/users",
+      "body" : {
+        "id" : 0,
+        "name" : "",
+        "email" : "invalid-email",
+        "userPreferences" : {
+          "preferredShoppingListId" : 456
+        }
+      }
+    },
+    "response" : {
+      "body" : "Invalid user data: name cannot be empty and email must be valid",
+      "status" : 400,
+      "headers" : { }
+    }
+  }, {
+    "description" : "testWillRespondWithDescription",
+    "request" : {
+      "method" : "GET",
+      "path" : "/users/1"
+    },
+    "response" : {
+      "body" : {
+        "id" : 1,
+        "name" : "John Doe",
+        "email" : "john.doe@example.com",
+        "userPreferences" : {
+          "preferredShoppingListId" : 123
+        }
+      },
+      "status" : 200,
+      "headers" : { }
+    }
+  }, {
+    "description" : "testWillRespond",
+    "request" : {
+      "method" : "GET",
+      "path" : "/users/1"
+    },
+    "response" : {
+      "body" : {
+        "id" : 1,
+        "name" : "John Doe",
+        "email" : "john.doe@example.com",
+        "userPreferences" : {
+          "preferredShoppingListId" : 123
+        }
+      },
+      "status" : 200,
+      "headers" : { }
+    }
+  } ],
+  "metadata" : {
+    "pactSpecification" : {
+      "version" : "3.0.0"
+    },
+    "pactJvm" : {
+      "version" : "4.0.10"
+    }
+  }
+}
