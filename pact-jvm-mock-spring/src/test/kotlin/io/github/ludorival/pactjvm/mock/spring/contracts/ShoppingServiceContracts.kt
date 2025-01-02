@@ -5,8 +5,8 @@ import io.github.ludorival.pactjvm.mock.spring.PREFERRED_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.spring.SHOPPING_LIST_TO_DELETE
 import io.github.ludorival.pactjvm.mock.spring.USER_ID
 import io.github.ludorival.pactjvm.mock.spring.providers.shoppingservice.ShoppingList
-import io.github.ludorival.pactjvm.mockk.willRespond
-import io.github.ludorival.pactjvm.mockk.willRespondWith
+import io.github.ludorival.pactjvm.mock.mockk.willRespond
+import io.github.ludorival.pactjvm.mock.mockk.willRespondWith
 import io.github.ludorival.pactjvm.mock.Matcher
 import io.mockk.every
 import org.springframework.core.ParameterizedTypeReference

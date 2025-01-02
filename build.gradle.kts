@@ -170,7 +170,7 @@ project(":pact-jvm-mock") {
         implementation(kotlin("stdlib-jdk8"))
     }
 }
-project(":pact-jvm-mockk") {
+project(":pact-jvm-mock-mockk") {
     dependencies {
         api(project(":pact-jvm-mock"))
         compileOnly("io.mockk:mockk:1.13.14")
@@ -185,7 +185,7 @@ project(":pact-jvm-mock-spring") {
         compileOnly("io.mockk:mockk:1.13.14")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
-        testImplementation(project(":pact-jvm-mockk"))
+        testImplementation(project(":pact-jvm-mock-mockk"))
         testImplementation("io.mockk:mockk:1.13.14")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")

@@ -39,10 +39,18 @@ Or if you are using Maven:
 **Maven**
 
 ````xml
-
+<!-- For intercepting Mockk calls -->
 <dependency>
     <groupId>io.github.ludorival</groupId>
-    <artifactId>pact-jvm-mockk-spring</artifactId>
+    <artifactId>pact-jvm-mock-mockk</artifactId>
+    <version>${pactJvmMockVersion}</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- For intercepting Spring RestTemplate calls -->
+<dependency>
+    <groupId>io.github.ludorival</groupId>
+    <artifactId>pact-jvm-mock-spring</artifactId>
     <version>${pactJvmMockVersion}</version>
     <scope>test</scope>
 </dependency>
@@ -56,8 +64,8 @@ For example, let's say you want to leverage existing mock of Spring RestTemplate
 Create a Kotlin object (or use an existing one) which will hold the `pactOptions`. Here is a minimal example:
 
 ```kotlin
-import io.github.ludorival.pactjvm.mockk.pactOptions
-import io.github.ludorival.pactjvm.mockk.spring.SpringRestTemplateMockkAdapter
+import io.github.ludorival.pactjvm.mock.pactOptions
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter
 
 object MyPactMock {
 
@@ -75,7 +83,7 @@ Then, to start writing contract,
 you have to extend your test classes where you need to record the interactions with your providers. Like that
 
 ```kotlin
-import io.github.ludorival.pactjvm.mockk.PactConsumer
+import io.github.ludorival.pactjvm.mock.mockk.PactConsumer
 
 @PactConsumer(MyPactMock::class)
 class ShoppingServiceClientTest 

@@ -1,4 +1,4 @@
-package io.github.ludorival.pactjvm.mockk
+package io.github.ludorival.pactjvm.mock.mockk
 
 import io.github.ludorival.pactjvm.mock.Call as MockCall
 import io.github.ludorival.pactjvm.mock.CallInterceptor

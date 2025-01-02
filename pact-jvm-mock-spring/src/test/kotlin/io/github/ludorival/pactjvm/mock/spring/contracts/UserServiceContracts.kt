@@ -3,7 +3,7 @@ package io.github.ludorival.pactjvm.mock.spring.contracts
 import io.github.ludorival.pactjvm.mock.spring.USER_ID
 import io.github.ludorival.pactjvm.mock.spring.USER_PROFILE
 import io.github.ludorival.pactjvm.mock.spring.providers.userservice.UserProfile
-import io.github.ludorival.pactjvm.mockk.willRespondWith
+import io.github.ludorival.pactjvm.mock.mockk.willRespondWith
 import io.mockk.every
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.RestTemplate
