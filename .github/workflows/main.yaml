@@ -42,8 +42,7 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
         run: |
           ./gradlew publish
-          ./gradlew :pact-jvm-mockk-spring:jreleaserDeploy
-          ./gradlew :pact-jvm-mockk-core:jreleaserDeploy
+          ./gradlew :pact-jvm-mock:jreleaserDeploy & ./gradlew :pact-jvm-mockk:jreleaserDeploy & ./gradlew :pact-jvm-mock-spring:jreleaserDeploy
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
