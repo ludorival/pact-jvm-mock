@@ -8,7 +8,7 @@ import io.mockk.MockKAdditionalAnswerScope
 import io.mockk.MockKStubScope
 
 fun pactOptions(builder: PactOptions.Builder.() -> Unit) =
-    PactMockk.setPactOptions(PactOptions.Builder().apply(builder).build())
+    PactOptions.Builder().apply(builder).build()
 
 fun writePacts() = PactMockk.writePacts()
 

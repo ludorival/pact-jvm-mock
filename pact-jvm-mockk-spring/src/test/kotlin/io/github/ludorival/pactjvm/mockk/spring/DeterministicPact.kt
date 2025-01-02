@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.ObjectMapper
 
 
-object DeterministicPact : BeforeAllCallback, AfterAllCallback {
+object DeterministicPact  {
 
     private val PACT_DIRECTORY = "${PactOptions.DEFAULT_OPTIONS.pactDirectory}-deterministic"
 
@@ -25,21 +25,11 @@ object DeterministicPact : BeforeAllCallback, AfterAllCallback {
         serializerAsDefault<LocalDate>("2023-01-01")
     ).build()
 
-    override fun beforeAll(context: ExtensionContext?) {
-        pactOptions {
+    val pactOptions = pactOptions {
             consumer = "shopping-list"
             pactDirectory = PACT_DIRECTORY
             isDeterministic = true
             objectMapperCustomizer = { if (it == "shopping-service") CUSTOM_OBJECT_MAPPER else null }
             addAdapter(SpringRestTemplateMockkAdapter())
         }
-    }
-
-    override fun afterAll(context: ExtensionContext?) = writePacts()
-
-//    private fun Any.toPrettyJson(objectMapper: ObjectMapper) =
-//        objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-//
-//    private fun readPacts(directory: String = PACT_DIRECTORY, objectMapper: ObjectMapper) =
-//        File(directory).listFiles()?.associate { it.name to objectMapper.readTree(it) }
 }

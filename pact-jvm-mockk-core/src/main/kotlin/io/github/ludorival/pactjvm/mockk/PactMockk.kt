@@ -13,6 +13,8 @@ internal object PactMockk {
         this.pactOptions = pactOptions
     }
 
+    internal var currentTestName: String? = null
+
     private val pacts: ConcurrentHashMap<String, PactToWrite> = ConcurrentHashMap()
 
 
