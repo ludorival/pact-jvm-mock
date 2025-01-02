@@ -14,7 +14,7 @@ class InteractionBuilderImpl : InteractionBuilder {
 
     override fun build(request: Pact.Interaction.Request, response: Pact.Interaction.Response): Pact.Interaction {
         return Pact.Interaction(
-            description = description
+            description = description ?: PactMockk.currentTestName 
                 ?: "${request.method} ${request.path}?${request.query ?: ""} returns ${response.status}",
             providerStates = providerStates.ifEmpty { null },
             request = request.copy(matchingRules = requestMatchingRulesBuilder.build()) ,

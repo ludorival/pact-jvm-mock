@@ -6,7 +6,7 @@
     "name" : "user-service"
   },
   "interactions" : [ {
-    "description" : "PUT /user-service/v1/user/123? returns 200",
+    "description" : "should set preferred shopping list",
     "request" : {
       "method" : "PUT",
       "path" : "/user-service/v1/user/123",

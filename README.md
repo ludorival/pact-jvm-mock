@@ -53,34 +53,31 @@ Or if you are using Maven:
 Next, you'll need to configure the library to use your existing [Mockk](https://github.com/mockk/mockk) mocks.
 
 For example, let's say you want to leverage existing mock of Spring RestTemplate.
-With JUnit 5, you can create an extension by inheriting `SpringPactMockkExtension`. Here is a minimal example:
+Create a Kotlin object (or use an existing one) which will hold the `pactOptions`. Here is a minimal example:
 
 ```kotlin
 import io.github.ludorival.pactjvm.mockk.pactOptions
 import io.github.ludorival.pactjvm.mockk.spring.SpringRestTemplateMockkAdapter
-import io.github.ludorival.pactjvm.mockk.writePacts
 
-object MyPactMock : AfterAllCallback {
+object MyPactMock {
 
-    init {
-        pactOptions {
+    val pactOptions = pactOptions {
             consumer = "my-service"
             // allow to intercept Spring RestTemplate mocks
             addAdapter(SpringRestTemplateMockkAdapter())
         }
-    }
-
-    override fun afterAll(context: ExtensionContext?) = writePacts()
 } 
 ```
 
 ### Extend your tests files
 
 Then, to start writing contract,
-you have to extend your test classes where you need to record the interactions with your consumers. Like that
+you have to extend your test classes where you need to record the interactions with your providers. Like that
 
 ```kotlin
-@ExtendsWith(MyPactMock::class)
+import io.github.ludorival.pactjvm.mockk.PactConsumer
+
+@PactConsumer(MyPactMock::class)
 class ShoppingServiceClientTest 
 ```
 

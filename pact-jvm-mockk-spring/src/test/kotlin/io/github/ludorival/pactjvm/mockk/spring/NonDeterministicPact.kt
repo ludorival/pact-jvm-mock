@@ -14,7 +14,7 @@ import io.github.ludorival.pactjvm.mockk.spring.providers.shoppingservice.CUSTOM
 import io.github.ludorival.pactjvm.mockk.serializerAsDefault
 
 
-object NonDeterministicPact : BeforeAllCallback, AfterAllCallback {
+object NonDeterministicPact {
 
     private val PACT_DIRECTORY = PactOptions.DEFAULT_OPTIONS.pactDirectory
 
@@ -23,9 +23,7 @@ object NonDeterministicPact : BeforeAllCallback, AfterAllCallback {
         serializerAsDefault<LocalDate>("2023-01-01")
     ).serializationInclusion(JsonInclude.Include.NON_NULL).build()
 
-
-    override fun beforeAll(context: ExtensionContext?) {
-        pactOptions {
+    val pactOptions = pactOptions {
             consumer = "shopping-list"
             pactDirectory = PACT_DIRECTORY
             objectMapperCustomizer = {
@@ -34,13 +32,4 @@ object NonDeterministicPact : BeforeAllCallback, AfterAllCallback {
                 } else null }
             addAdapter(SpringRestTemplateMockkAdapter())
         }
-    }
-
-    override fun afterAll(context: ExtensionContext?) = writePacts()
-
-//    private fun Any.toPrettyJson(objectMapper: ObjectMapper) =
-//        objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-//
-//    private fun readPacts(directory: String = PACT_DIRECTORY, objectMapper: ObjectMapper) =
-//        File(directory).listFiles()?.associate { it.name to objectMapper.readTree(it) }
 }

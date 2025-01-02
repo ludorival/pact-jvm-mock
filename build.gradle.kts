@@ -165,6 +165,8 @@ project(":pact-jvm-mockk-core") {
         compileOnly("io.mockk:mockk:1.13.14")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
         compileOnly("org.slf4j:slf4j-api:2.0.16")
+        compileOnly("org.junit.jupiter:junit-jupiter-api:5.11.4")
+        implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
         implementation(kotlin("stdlib-jdk8"))
     }
