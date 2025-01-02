@@ -160,9 +160,8 @@ allprojects {
 }
 
 // Individual project dependencies
-project(":pact-jvm-mockk-core") {
+project(":pact-jvm-mock") {
     dependencies {
-        compileOnly("io.mockk:mockk:1.13.14")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
         compileOnly("org.slf4j:slf4j-api:2.0.16")
         compileOnly("org.junit.jupiter:junit-jupiter-api:5.11.4")
@@ -171,15 +170,22 @@ project(":pact-jvm-mockk-core") {
         implementation(kotlin("stdlib-jdk8"))
     }
 }
-
-project(":pact-jvm-mockk-spring") {
+project(":pact-jvm-mock-mockk") {
     dependencies {
-        api(project(":pact-jvm-mockk-core"))
+        api(project(":pact-jvm-mock"))
+        compileOnly("io.mockk:mockk:1.13.14")
+    }
+}
+
+project(":pact-jvm-mock-spring") {
+    dependencies {
+        api(project(":pact-jvm-mock"))
         implementation(kotlin("stdlib-jdk8"))
         compileOnly("org.springframework:spring-web:6.2.1")
         compileOnly("io.mockk:mockk:1.13.14")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
+        testImplementation(project(":pact-jvm-mock-mockk"))
         testImplementation("io.mockk:mockk:1.13.14")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
