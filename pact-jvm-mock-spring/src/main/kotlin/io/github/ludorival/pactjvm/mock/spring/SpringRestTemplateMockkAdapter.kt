@@ -5,7 +5,6 @@ import io.github.ludorival.pactjvm.mock.Pact.Interaction.Request.Method
 import io.github.ludorival.pactjvm.mock.PactMockResponseError
 import io.github.ludorival.pactjvm.mock.PactMockAdapter
 import io.github.ludorival.pactjvm.mock.Call
-import io.mockk.Invocation
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus

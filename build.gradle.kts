@@ -182,20 +182,20 @@ project(":pact-jvm-mock-spring") {
         api(project(":pact-jvm-mock"))
         implementation(kotlin("stdlib-jdk8"))
         compileOnly("org.springframework:spring-web:6.2.1")
-        compileOnly("io.mockk:mockk:1.13.14")
-        compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
-        testImplementation(project(":pact-jvm-mock-mockk"))
+    }
+}
+
+project(":pact-jvm-mock-test") {
+    dependencies {
+        implementation(kotlin("stdlib-jdk8"))
+        implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
+        implementation("org.springframework:spring-web:6.2.1")
         testImplementation("io.mockk:mockk:1.13.14")
+        testImplementation(project(":pact-jvm-mock-spring"))
+        testImplementation(project(":pact-jvm-mock-mockk"))
+        testImplementation("io.github.ludorival:kotlin-tdd:2.2.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
-        testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
-        testImplementation("io.github.ludorival:kotlin-tdd:2.2.0")
-        testImplementation("org.springframework:spring-web:6.2.1")
-        testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.3")
-        testImplementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
-        testImplementation("au.com.dius.pact.provider:junit5:4.6.16")
-        testImplementation("au.com.dius.pact.provider:junit5spring:4.6.16")
-        testImplementation("au.com.dius.pact.provider:spring:4.6.16")
     }
 }
