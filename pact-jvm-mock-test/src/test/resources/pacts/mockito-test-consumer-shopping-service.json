@@ -19,7 +19,7 @@
       }
     },
     "response" : {
-      "body" : "The shopping list ID is invalid or does not exist",
+      "body" : "The title contains unexpected character",
       "status" : 400,
       "headers" : { }
     }

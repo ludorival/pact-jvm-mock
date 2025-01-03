@@ -15,33 +15,33 @@
     "description" : "Get user profile",
     "request" : {
       "method" : "GET",
-      "path" : "/user-service/v1/user/1"
+      "path" : "/user-service/v1/user/123"
     },
     "response" : {
       "body" : {
         "id" : 123,
-        "name" : "John Doe",
-        "email" : "john.doe@example.com",
+        "name" : "User name",
+        "email" : "user@email.com",
         "userPreferences" : {
-          "preferredShoppingListId" : 123
+          "preferredShoppingListId" : 1
         }
       },
       "status" : 200,
       "headers" : { }
     }
   }, {
-    "description" : "Get user profile - -927880925",
+    "description" : "Get user profile - 1635204653",
     "request" : {
       "method" : "GET",
-      "path" : "/user-service/v1/user/1"
+      "path" : "/user-service/v1/user/123"
     },
     "response" : {
       "body" : {
         "id" : 123,
-        "name" : "John Doe",
-        "email" : "john.doe@example.com",
+        "name" : "User name",
+        "email" : "user@email.com",
         "userPreferences" : {
-          "preferredShoppingListId" : 123
+          "preferredShoppingListId" : 1
         }
       },
       "status" : 200,

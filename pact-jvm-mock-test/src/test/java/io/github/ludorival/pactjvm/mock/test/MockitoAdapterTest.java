@@ -6,6 +6,7 @@ import io.github.ludorival.pactjvm.mock.PactOptions;
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter;
 import io.github.ludorival.pactjvm.mock.test.userservice.UserPreferences;
 import io.github.ludorival.pactjvm.mock.test.userservice.UserProfile;
+
 import io.github.ludorival.pactjvm.mock.test.consumer.userservice.UserServiceClient;
 import io.github.ludorival.pactjvm.mock.test.consumer.shoppingservice.ShoppingServiceClient;
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingList;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+
 
 @PactConsumer(MockitoAdapterTest.TestPactOptions.class)
 public class MockitoAdapterTest {
@@ -51,9 +53,9 @@ public class MockitoAdapterTest {
 
     private static final UserProfile USER_PROFILE = new UserProfile(
             123L,
-            "John Doe",
-            "john.doe@example.com",
-            new UserPreferences(123L)
+             "User name", "user@email.com", new UserPreferences(
+        1L
+    )
     );
 
     @BeforeEach
@@ -72,7 +74,7 @@ public class MockitoAdapterTest {
             .withDescription("Get user profile")
             .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
-        UserProfile response = userServiceClient.getUserProfile(1L);
+        UserProfile response = userServiceClient.getUserProfile(USER_PROFILE.getId());
         assertEquals(USER_PROFILE, response);
     }
 
@@ -86,13 +88,13 @@ public class MockitoAdapterTest {
             .withProviderState("The user has a preferred shopping list", Map.of("userId", USER_PROFILE.getId()))
             .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
-        UserProfile response = userServiceClient.getUserProfile(1L);
+        UserProfile response = userServiceClient.getUserProfile(USER_PROFILE.getId());
         assertEquals(USER_PROFILE, response);
     }
 
     @Test
     void testSetPreferredShoppingListError() {
-        String errorMessage = "The shopping list ID is invalid or does not exist";
+        String errorMessage = "The title contains unexpected character";
         PactMockito.uponReceiving(restTemplate.postForEntity(
                 any(URI.class),
                 any(Map.class),
@@ -108,10 +110,7 @@ public class MockitoAdapterTest {
             ));
 
         HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
-            shoppingServiceClient.createShoppingList(
-                    USER_PROFILE.getId(),
-                    "Unexpected character \\s"
-                );
+            shoppingServiceClient.createShoppingList(123L, "Unexpected character \\s");
         });
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
         assertEquals(errorMessage, exception.getResponseBodyAsString());
