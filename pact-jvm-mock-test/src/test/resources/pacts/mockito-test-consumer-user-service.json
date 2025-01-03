@@ -3,9 +3,31 @@
     "name" : "mockito-test-consumer"
   },
   "provider" : {
-    "name" : "users"
+    "name" : "user-service"
   },
   "interactions" : [ {
+    "providerStates" : [ {
+      "name" : "Invalid shopping list",
+      "params" : {
+        "shoppingListId" : "456",
+        "userId" : "1"
+      }
+    } ],
+    "description" : "Update user preferences with invalid shopping list",
+    "request" : {
+      "method" : "PUT",
+      "path" : "/user-service/v1/user/1",
+      "headers" : { },
+      "body" : {
+        "preferredShoppingListId" : 456
+      }
+    },
+    "response" : {
+      "body" : "Invalid shopping list preference",
+      "status" : 400,
+      "headers" : { }
+    }
+  }, {
     "providerStates" : [ {
       "name" : "User exists",
       "params" : {
@@ -15,7 +37,7 @@
     "description" : "Get user profile",
     "request" : {
       "method" : "GET",
-      "path" : "/users/1"
+      "path" : "/user-service/v1/user/1"
     },
     "response" : {
       "body" : {
@@ -30,10 +52,10 @@
       "headers" : { }
     }
   }, {
-    "description" : "Get user profile - 720838265",
+    "description" : "Get user profile - 740784908",
     "request" : {
       "method" : "GET",
-      "path" : "/users/1"
+      "path" : "/user-service/v1/user/1"
     },
     "response" : {
       "body" : {

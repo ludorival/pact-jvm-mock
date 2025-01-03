@@ -19,27 +19,20 @@ internal object PactMock: CallInterceptor {
 
     fun writePacts() {
         pacts.values.forEach {
-            it.write(pactOptions.pactDirectory)
+            it.write()
         }
     }
 
 
-    private fun getPact(consumerName: String) = pacts.getOrPut(consumerName) {
-        PactToWrite(
-            pactOptions.consumer,
-            ProviderMetaData(
-                consumerName, pactOptions.objectMapperCustomizer.invoke(consumerName),
-                pactOptions.pactMetaData
-            ),
-            pactOptions.isDeterministic
-        )
+    private fun getPact(providerName: String) = pacts.getOrPut(pactOptions.id(providerName)) {
+        PactToWrite(providerName, pactOptions)
     }
 
     private fun getAdapterFor(call: Call) = pactOptions.adapters.find { it.support(call) }
     private fun addInteraction(interaction: Pact.Interaction) {
-        val consumerName = pactOptions.determineProviderFromInteraction.invoke(interaction)
-        val pactToWrite = getPact(consumerName)
-        pacts[consumerName] = pactToWrite.addInteraction(
+        val providerName = pactOptions.determineProviderFromInteraction.invoke(interaction)
+        val pactToWrite = getPact(providerName)
+        pacts[pactToWrite.id] = pactToWrite.addInteraction(
             serializeRequestAndResponse(
                 interaction,
                 pactToWrite.objectMapper

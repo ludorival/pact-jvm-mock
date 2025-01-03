@@ -1,17 +1,17 @@
-package io.github.ludorival.pactjvm.mock.mockito;
+package io.github.ludorival.pactjvm.mock.test;
 
+import io.github.ludorival.pactjvm.mock.mockito.PactMockito;
 import io.github.ludorival.pactjvm.mock.PactConsumer;
 import io.github.ludorival.pactjvm.mock.PactOptions;
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter;
 import io.github.ludorival.pactjvm.mock.test.userservice.UserPreferences;
 import io.github.ludorival.pactjvm.mock.test.userservice.UserProfile;
+import io.github.ludorival.pactjvm.mock.test.consumer.userservice.UserServiceClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,6 +42,8 @@ public class MockitoAdapterTest {
     @Mock
     private RestTemplate restTemplate;
 
+    private UserServiceClient userServiceClient;
+
     private static final UserProfile USER_PROFILE = new UserProfile(
             1L,
             "John Doe",
@@ -51,45 +54,44 @@ public class MockitoAdapterTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
+        userServiceClient = new UserServiceClient(restTemplate);
     }
 
     @Test
-    void testWillRespond() {
-        PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)))
+    void testGetUserProfile() {
+        PactMockito.uponReceiving(restTemplate.getForEntity(
+                any(String.class),
+                eq(UserProfile.class),
+                any(Long.class)))
             .withDescription("Get user profile")
             .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
-        ResponseEntity<UserProfile> response = restTemplate.getForEntity(
-                "http://user-service/users/1",
-                UserProfile.class
-        );
+        UserProfile response = userServiceClient.getUserProfile(1L);
+        assertEquals(USER_PROFILE, response);
     }
 
     @Test
-    void testWillRespondWithDescription() {
-        PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)))
+    void testGetUserProfileWithProviderState() {
+        PactMockito.uponReceiving(restTemplate.getForEntity(
+                any(String.class),
+                eq(UserProfile.class),
+                any(Long.class)))
             .withDescription("Get user profile")
             .withProviderState("User exists", Map.of("userId", "1"))
             .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
-        ResponseEntity<UserProfile> response = restTemplate.getForEntity(
-                "http://user-service/users/1",
-                UserProfile.class
-        );
+        UserProfile response = userServiceClient.getUserProfile(1L);
+        assertEquals(USER_PROFILE, response);
     }
 
     @Test
-    void testWillRespondWithError() {
-        UserProfile invalidProfile = new UserProfile(
-                0L,
-                "",
-                "invalid-email",
-                new UserPreferences(456L)
-        );
-
-        String errorMessage = "Invalid user data: name cannot be empty and email must be valid";
-        PactMockito.uponReceiving(restTemplate.postForEntity(any(String.class), any(UserProfile.class), eq(UserProfile.class)))
-            .withDescription("Create user profile with invalid data")
+    void testSetPreferredShoppingListError() {
+        String errorMessage = "Invalid shopping list preference";
+        PactMockito.uponReceiving(restTemplate.exchange(
+                any(RequestEntity.class),
+                eq(UserProfile.class)))
+            .withDescription("Update user preferences with invalid shopping list")
+            .withProviderState("Invalid shopping list", Map.of("userId", "1", "shoppingListId", "456"))
             .thenThrow(HttpClientErrorException.BadRequest.create(
                     HttpStatus.BAD_REQUEST,
                     errorMessage,
@@ -98,8 +100,10 @@ public class MockitoAdapterTest {
                     StandardCharsets.UTF_8
             ));
 
-        assertThrows(HttpClientErrorException.BadRequest.class, () -> {
-            restTemplate.postForEntity("/api/users", invalidProfile, UserProfile.class);
+        HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
+            userServiceClient.setPreferredShoppingList(1L, 456L);
         });
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals(errorMessage, exception.getResponseBodyAsString());
     }
 } 

@@ -111,39 +111,5 @@ object PactMockito {
 
 }
 
-fun <T> uponReceiving(ongoingStubbing: OngoingStubbing<T>) = PactMockito.uponReceiving(ongoingStubbing)
+fun <T> uponReceiving(method: T) = PactMockito.uponReceiving(method)
 
-
-// infix fun <T> OngoingStubbing<T>.willRespondWith(
-//     answer: Answer<T>
-// ): OngoingStubbing<T> {
-//     return thenAnswer { invocation ->
-//         val result = runCatching { answer.answer(invocation) }
-//         val scope = MockitoAnswerScope<T>(this)
-//         CallInterceptor.getInstance()
-//             .interceptAndGet(
-//                 MockCall(
-//                     MockCall.Method(
-//                         invocation.method.name,
-//                         invocation.method.parameterTypes
-//                     ),
-//                     invocation.mock,
-//                     invocation.arguments.toList()
-//                 ),
-//                 result,
-//                 scope
-//             )
-//     }
-// }
-
-// infix fun <T> OngoingStubbing<T>.willRespondWith(
-//     answer: (org.mockito.invocation.InvocationOnMock) -> T
-// ): OngoingStubbing<T> {
-//     return willRespondWith(Answer { invocation -> answer(invocation) })
-// }
-
-// infix fun <T> OngoingStubbing<T>.willRespond(
-//     returnValue: T
-// ): OngoingStubbing<T> {
-//     return willRespondWith(Answer { returnValue })
-// }
