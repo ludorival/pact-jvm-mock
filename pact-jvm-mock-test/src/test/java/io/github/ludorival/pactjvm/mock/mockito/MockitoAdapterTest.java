@@ -9,17 +9,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
-import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespond;
-import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespondWith;
-import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespondWithError;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,10 +55,9 @@ public class MockitoAdapterTest {
 
     @Test
     void testWillRespond() {
-        willRespond(
-            when(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))),
-            ResponseEntity.ok(USER_PROFILE)
-        );
+        PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)))
+            .withDescription("Get user profile")
+            .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
         ResponseEntity<UserProfile> response = restTemplate.getForEntity(
                 "http://user-service/users/1",
@@ -69,14 +67,10 @@ public class MockitoAdapterTest {
 
     @Test
     void testWillRespondWithDescription() {
-        willRespondWith(
-            when(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))),
-            scope -> {
-                scope.description("Get user profile");
-                scope.providerState("User exists", Map.of("userId", "1"));
-                return ResponseEntity.ok(USER_PROFILE);
-            }
-        );
+        PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)))
+            .withDescription("Get user profile")
+            .withProviderState("User exists", Map.of("userId", "1"))
+            .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
         ResponseEntity<UserProfile> response = restTemplate.getForEntity(
                 "http://user-service/users/1",
@@ -93,22 +87,19 @@ public class MockitoAdapterTest {
                 new UserPreferences(456L)
         );
 
-        willRespondWithError(
-            when(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class))),
-            scope -> {
-                scope.description("Create user profile - validation error");
-                scope.providerState("Invalid user data", Collections.emptyMap());
-                return ResponseEntity.badRequest()
-                        .body("Invalid user data: name cannot be empty and email must be valid");
-            }
-        );
+        String errorMessage = "Invalid user data: name cannot be empty and email must be valid";
+        PactMockito.uponReceiving(restTemplate.postForEntity(any(String.class), any(UserProfile.class), eq(UserProfile.class)))
+            .withDescription("Create user profile with invalid data")
+            .thenThrow(HttpClientErrorException.BadRequest.create(
+                    HttpStatus.BAD_REQUEST,
+                    errorMessage,
+                    new HttpHeaders(),
+                    errorMessage.getBytes(StandardCharsets.UTF_8),
+                    StandardCharsets.UTF_8
+            ));
 
-        assertThrows(HttpClientErrorException.BadRequest.class, () -> 
-            restTemplate.postForEntity(
-                URI.create("http://user-service/users"),
-                invalidProfile,
-                UserProfile.class
-            )
-        );
+        assertThrows(HttpClientErrorException.BadRequest.class, () -> {
+            restTemplate.postForEntity("/api/users", invalidProfile, UserProfile.class);
+        });
     }
 } 

@@ -6,26 +6,13 @@
     "name" : "users"
   },
   "interactions" : [ {
-    "description" : "testWillRespondWithError",
-    "request" : {
-      "method" : "POST",
-      "path" : "/users",
-      "body" : {
-        "id" : 0,
-        "name" : "",
-        "email" : "invalid-email",
-        "userPreferences" : {
-          "preferredShoppingListId" : 456
-        }
+    "providerStates" : [ {
+      "name" : "User exists",
+      "params" : {
+        "userId" : "1"
       }
-    },
-    "response" : {
-      "body" : "Invalid user data: name cannot be empty and email must be valid",
-      "status" : 400,
-      "headers" : { }
-    }
-  }, {
-    "description" : "testWillRespondWithDescription",
+    } ],
+    "description" : "Get user profile",
     "request" : {
       "method" : "GET",
       "path" : "/users/1"
@@ -43,7 +30,7 @@
       "headers" : { }
     }
   }, {
-    "description" : "testWillRespond",
+    "description" : "Get user profile - -287319063",
     "request" : {
       "method" : "GET",
       "path" : "/users/1"

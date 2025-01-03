@@ -328,42 +328,51 @@ pact-jvm-mock is licensed under the [MIT License](LICENSE).
 
 ### Using with Mockito (Java)
 
-If you're using Mockito with Java, you can use the following syntax with static imports:
+To use pact-jvm-mock with Mockito in Java, simply replace all your `Mockito.when` calls with `PactMockito.uponReceiving`:
 
 ```java
-import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespond;
-import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespondWith;
-import static io.github.ludorival.pactjvm.mock.mockito.MockitoUtils.willRespondWithError;
+import static io.github.ludorival.pactjvm.mock.mockito.PactMockito.uponReceiving;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 // Simple response
-willRespond(
-    when(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))),
-    ResponseEntity.ok(USER_PROFILE)
-);
+uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))
+    .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
-// With scope for description and provider state
-willRespondWith(
-    when(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))),
-    scope -> {
-        scope.description("Get user profile");
-        scope.providerState("User exists", Map.of("userId", "1"));
-        return ResponseEntity.ok(USER_PROFILE);
-    }
-);
+// With error response
+uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class)))
+    .withDescription("Create user profile - validation error")
+    .withProviderState("Invalid user data", Collections.emptyMap())
+    .thenThrow(HttpClientErrorException.BadRequest.create(
+                    HttpStatus.BAD_REQUEST,
+                    errorMessage,
+                    new HttpHeaders(),
+                    errorMessage.getBytes(StandardCharsets.UTF_8),
+                    StandardCharsets.UTF_8
+            ));
 
-// Handling errors
-willRespondWithError(
-    when(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class))),
-    scope -> {
-        scope.description("Create user profile - validation error");
-        scope.providerState("Invalid user data", Collections.emptyMap());
-        return ResponseEntity.badRequest()
-                .body("Invalid user data: name cannot be empty and email must be valid");
-    }
-);
+```
+
+You can also add optional configurations like descriptions, provider states, and matching rules:
+
+```java
+// With optional configurations
+uponReceiving(restTemplate.exchange(
+        any(URI.class),
+        eq(HttpMethod.GET),
+        any(),
+        any(ParameterizedTypeReference.class)
+    ))
+    .withDescription("List users")
+    .withProviderState("Users exist", Collections.emptyMap())
+    .withRequestMatchingRules(rules -> {
+        rules.header("Authorization", new Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"));
+    })
+    .withResponseMatchingRules(rules -> {
+        rules.body("[*].id", new Matcher(Matcher.MatchEnum.TYPE));
+    })
+    .thenReturn(ResponseEntity.ok(Arrays.asList(USER_1, USER_2)));
 ```
 
 Note: Don't forget to configure your test class with the `@PactConsumer` annotation:
