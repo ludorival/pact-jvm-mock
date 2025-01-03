@@ -1,0 +1,35 @@
+{
+  "consumer" : {
+    "name" : "mockito-test-consumer"
+  },
+  "provider" : {
+    "name" : "shopping-service"
+  },
+  "interactions" : [ {
+    "providerStates" : [ {
+      "name" : "The request should return a 400 Bad request",
+      "params" : { }
+    } ],
+    "description" : "should return a 400 Bad request",
+    "request" : {
+      "method" : "POST",
+      "path" : "/shopping-service/user/123",
+      "body" : {
+        "title" : "Unexpected character \\s"
+      }
+    },
+    "response" : {
+      "body" : "The shopping list ID is invalid or does not exist",
+      "status" : 400,
+      "headers" : { }
+    }
+  } ],
+  "metadata" : {
+    "pactSpecification" : {
+      "version" : "3.0.0"
+    },
+    "pactJvm" : {
+      "version" : "4.0.10"
+    }
+  }
+}

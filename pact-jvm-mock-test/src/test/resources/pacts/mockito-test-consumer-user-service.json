@@ -7,31 +7,9 @@
   },
   "interactions" : [ {
     "providerStates" : [ {
-      "name" : "Invalid shopping list",
+      "name" : "The user has a preferred shopping list",
       "params" : {
-        "shoppingListId" : "456",
-        "userId" : "1"
-      }
-    } ],
-    "description" : "Update user preferences with invalid shopping list",
-    "request" : {
-      "method" : "PUT",
-      "path" : "/user-service/v1/user/1",
-      "headers" : { },
-      "body" : {
-        "preferredShoppingListId" : 456
-      }
-    },
-    "response" : {
-      "body" : "Invalid shopping list preference",
-      "status" : 400,
-      "headers" : { }
-    }
-  }, {
-    "providerStates" : [ {
-      "name" : "User exists",
-      "params" : {
-        "userId" : "1"
+        "userId" : 123
       }
     } ],
     "description" : "Get user profile",
@@ -41,7 +19,7 @@
     },
     "response" : {
       "body" : {
-        "id" : 1,
+        "id" : 123,
         "name" : "John Doe",
         "email" : "john.doe@example.com",
         "userPreferences" : {
@@ -52,14 +30,14 @@
       "headers" : { }
     }
   }, {
-    "description" : "Get user profile - 740784908",
+    "description" : "Get user profile - -927880925",
     "request" : {
       "method" : "GET",
       "path" : "/user-service/v1/user/1"
     },
     "response" : {
       "body" : {
-        "id" : 1,
+        "id" : 123,
         "name" : "John Doe",
         "email" : "john.doe@example.com",
         "userPreferences" : {
