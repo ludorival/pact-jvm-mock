@@ -7,7 +7,7 @@ import io.github.ludorival.pactjvm.mock.PactOptions
 import io.github.ludorival.pactjvm.mock.pactOptions
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import java.time.LocalDate
-import io.github.ludorival.pactjvm.mock.test.shoppingservice.CUSTOM_OBJECT_MAPPER
+import io.github.ludorival.pactjvm.mock.test.shoppingservice.objectMapperBuilder
 import io.github.ludorival.pactjvm.mock.serializerAsDefault
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter
 
@@ -16,7 +16,7 @@ object NonDeterministicPact {
 
     private val PACT_DIRECTORY = PactOptions.DEFAULT_OPTIONS.pactDirectory
 
-    val CUSTOM_OBJECT_MAPPER: ObjectMapper = Jackson2ObjectMapperBuilder()
+    val CUSTOM_OBJECT_MAPPER: ObjectMapper = objectMapperBuilder()
     .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
     .serializerByType(
         LocalDate::class.java,
