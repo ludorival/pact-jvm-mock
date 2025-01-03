@@ -26,11 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired
 @SpringBootTest(
     classes = [UserServiceApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = ["spring.main.allow-bean-definition-overriding=true"]
 )
 @Provider("user-service")
 @PactFolder("pacts")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServicePactVerifier {
 
     @Autowired private lateinit var restController: UserServiceRestController

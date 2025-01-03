@@ -197,14 +197,7 @@ project(":pact-jvm-mock-test") {
     dependencies {
         implementation(kotlin("stdlib-jdk8"))
         implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
-        implementation("org.springframework:spring-web:6.2.1")
         
-        // Add these HTTP client dependencies
-        implementation("org.apache.httpcomponents.client5:httpclient5:5.2.1")
-        implementation("org.apache.httpcomponents.core5:httpcore5:5.2.1")
-        
-        // Add webflux starter for better HTTP client support
-        implementation("org.springframework.boot:spring-boot-starter-webflux:3.2.3")
         
         testImplementation("io.mockk:mockk:1.13.14")
         testImplementation(project(":pact-jvm-mock-spring"))

@@ -27,11 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired
 @SpringBootTest(
     classes = [ShoppingServiceApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = ["spring.main.allow-bean-definition-overriding=true"]
 )
 @Provider("shopping-service")
 @PactFolder("pacts")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ShoppingServicePactVerifier {
 
     @Autowired private lateinit var restController: ShoppingServiceRestController

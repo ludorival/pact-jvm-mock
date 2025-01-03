@@ -28,7 +28,7 @@ jobs:
       - name: Build with Gradle
         run: |
           ./gradlew build
-          ./gradlew contractTest --info --stacktrace --no-daemon
+          ./gradlew contractTest --info
 
       - name: Test Report
         uses: dorny/test-reporter@v1
