@@ -337,7 +337,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 // Simple response
-uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class))
+uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)))
     .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
 // With error response
