@@ -19,15 +19,18 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.ActiveProfiles
 import java.net.URI
 import org.springframework.beans.factory.annotation.Autowired
+import org.junit.jupiter.api.TestInstance
 
 @ActiveProfiles("user-service")
 @Tag("contract-test")
 @SpringBootTest(
     classes = [UserServiceApplication::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = ["spring.main.allow-bean-definition-overriding=true"]
 )
 @Provider("user-service")
 @PactFolder("pacts")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServicePactVerifier {
 
     @Autowired private lateinit var restController: UserServiceRestController
@@ -36,8 +39,11 @@ class UserServicePactVerifier {
 
     @BeforeEach
     fun setUp(context: PactVerificationContext) {
-        context.target = HttpTestTarget.fromUrl(URI.create("http://localhost:$port").toURL())
-
+        try {
+            context.target = HttpTestTarget.fromUrl(URI.create("http://localhost:$port").toURL())
+        } catch (e: Exception) {
+            throw IllegalStateException("Failed to setup test context: ${e.message}", e)
+        }
     }
 
     @TestTemplate

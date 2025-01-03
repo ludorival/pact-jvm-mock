@@ -25,10 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired
 @Tag("contract-test")
 @SpringBootTest(
     classes = [ShoppingServiceApplication::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = ["spring.main.allow-bean-definition-overriding=true"]
 )
 @Provider("shopping-service")
 @PactFolder("pacts")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ShoppingServicePactVerifier {
 
     @Autowired private lateinit var restController: ShoppingServiceRestController
@@ -37,11 +39,15 @@ class ShoppingServicePactVerifier {
 
     @BeforeEach
     fun setUp(context: PactVerificationContext) {
-        context.target = HttpTestTarget.fromUrl(URI.create("http://localhost:$port").toURL())
-        restController.apply {
-            clearAll()
-            putShoppingList(PREFERRED_SHOPPING_LIST)
-            putShoppingList(SHOPPING_LIST_TO_DELETE)
+        try {
+            context.target = HttpTestTarget.fromUrl(URI.create("http://localhost:$port").toURL())
+            restController.apply {
+                clearAll()
+                putShoppingList(PREFERRED_SHOPPING_LIST)
+                putShoppingList(SHOPPING_LIST_TO_DELETE)
+            }
+        } catch (e: Exception) {
+            throw IllegalStateException("Failed to setup test context: ${e.message}", e)
         }
     }
 
