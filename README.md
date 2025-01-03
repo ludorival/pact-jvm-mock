@@ -47,6 +47,14 @@ Or if you are using Maven:
     <scope>test</scope>
 </dependency>
 
+<!-- For intercepting Mockito calls -->
+<dependency>
+    <groupId>io.github.ludorival</groupId>
+    <artifactId>pact-jvm-mock-mockito</artifactId>
+    <version>${pactJvmMockVersion}</version>
+    <scope>test</scope>
+</dependency>
+
 <!-- For intercepting Spring RestTemplate calls -->
 <dependency>
     <groupId>io.github.ludorival</groupId>
@@ -317,3 +325,71 @@ check out the [contributing guidelines](CONTRIBUTING.md).
 ## License
 
 pact-jvm-mock is licensed under the [MIT License](LICENSE).
+
+### Using with Mockito (Java)
+
+To use pact-jvm-mock with Mockito in Java, simply replace all your `Mockito.when` calls with `PactMockito.uponReceiving`:
+
+```java
+import static io.github.ludorival.pactjvm.mock.mockito.PactMockito.uponReceiving;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+// Simple response
+uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)))
+    .thenReturn(ResponseEntity.ok(USER_PROFILE));
+
+// With error response
+uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class)))
+    .withDescription("Create user profile - validation error")
+    .withProviderState("Invalid user data", Collections.emptyMap())
+    .thenThrow(HttpClientErrorException.BadRequest.create(
+                    HttpStatus.BAD_REQUEST,
+                    errorMessage,
+                    new HttpHeaders(),
+                    errorMessage.getBytes(StandardCharsets.UTF_8),
+                    StandardCharsets.UTF_8
+            ));
+
+```
+
+You can also add optional configurations like descriptions, provider states, and matching rules:
+
+```java
+// With optional configurations
+uponReceiving(restTemplate.exchange(
+        any(URI.class),
+        eq(HttpMethod.GET),
+        any(),
+        any(ParameterizedTypeReference.class)
+    ))
+    .withDescription("List users")
+    .withProviderState("Users exist", Collections.emptyMap())
+    .withRequestMatchingRules(rules -> {
+        rules.header("Authorization", new Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"));
+    })
+    .withResponseMatchingRules(rules -> {
+        rules.body("[*].id", new Matcher(Matcher.MatchEnum.TYPE));
+    })
+    .thenReturn(ResponseEntity.ok(Arrays.asList(USER_1, USER_2)));
+```
+
+Note: Don't forget to configure your test class with the `@PactConsumer` annotation:
+
+```java
+@PactConsumer(MyPactOptions.class)
+public class MyTest {
+    public static class MyPactOptions {
+        public static final PactOptions pactOptions;
+        
+        static {
+            PactOptions.Builder builder = new PactOptions.Builder();
+            builder.setConsumer("my-consumer");
+            builder.addAdapter(new SpringRestTemplateMockkAdapter());
+            pactOptions = builder.build();
+        }
+    }
+    // ... test methods
+}
+```

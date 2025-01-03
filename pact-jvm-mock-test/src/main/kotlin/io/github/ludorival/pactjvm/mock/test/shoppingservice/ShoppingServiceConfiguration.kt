@@ -15,12 +15,11 @@ open class ShoppingServiceConfiguration {
 
     @Bean
     @Primary
-    open fun objectMapper(): ObjectMapper = CUSTOM_OBJECT_MAPPER
+    open fun objectMapper(): ObjectMapper = objectMapperBuilder().build()
 }
 
-val CUSTOM_OBJECT_MAPPER: ObjectMapper = Jackson2ObjectMapperBuilder()
+fun objectMapperBuilder(): Jackson2ObjectMapperBuilder = Jackson2ObjectMapperBuilder()
     .modules(JavaTimeModule())
     .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
     .serializationInclusion(JsonInclude.Include.NON_NULL)
     .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    .build() 

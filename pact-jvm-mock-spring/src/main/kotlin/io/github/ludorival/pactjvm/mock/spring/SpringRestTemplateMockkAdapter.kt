@@ -133,7 +133,7 @@ class SpringRestTemplateMockkAdapter :
     @Suppress("UNCHECKED_CAST")
     private fun List<Any?>.getUriVariables(): Array<out Any> {
         val lastArg = last()
-        return if (lastArg is Array<*>) lastArg as Array<out Any> else emptyArray()
+        return if (lastArg is Array<*>) lastArg as Array<out Any> else if (lastArg != null) arrayOf(lastArg) else emptyArray()
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -2,29 +2,46 @@ package io.github.ludorival.pactjvm.mock
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
+import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch
 
 internal data class PactToWrite(
-    val consumer: String,
-    val providerMetaData: ProviderMetaData,
-    private val isDeterministic: Boolean = false
+        val consumer: String,
+        val providerMetaData: ProviderMetaData,
+        private val isDeterministic: Boolean = false,
+        private val outputDirectory: String
 ) {
 
+    constructor(
+            providerName: String,
+            pactOptions: PactOptions
+    ) : this(
+            pactOptions.consumer,
+            ProviderMetaData(
+                    providerName,
+                    pactOptions.objectMapperCustomizer.invoke(providerName),
+                    pactOptions.pactMetaData
+            ),
+            pactOptions.isDeterministic,
+            pactOptions.pactDirectory
+    )
     init {
         if (consumer.isBlank()) error("The consumer should not be empty")
     }
 
+    val id = "${consumer}-${providerMetaData.name}-${isDeterministic}"
+    
     private val interactionsByDescription = ConcurrentHashMap<String, Pact.Interaction>()
 
     private val descriptions = mutableListOf<String>()
     private val diffMatchPatch = DiffMatchPatch()
 
-    val objectMapper get() = providerMetaData.customObjectMapper ?: PACT_OBJECT_MAPPER
+    val objectMapper
+        get() = providerMetaData.customObjectMapper ?: PACT_OBJECT_MAPPER
 
     fun addInteraction(interaction: Pact.Interaction): PactToWrite {
         val existing = interactionsByDescription[interaction.description]
@@ -33,19 +50,22 @@ internal data class PactToWrite(
             hasChanged && isDeterministic -> {
                 throw IllegalStateException(printDifferences(existing!!, interaction))
             }
-
-            hasChanged                    -> addInteraction(
-                interaction.copy(description = "${interaction.description} - ${interaction.hashCode()}")
-            ).also {
-                println(printDifferences(existing!!, interaction))
-                println(
-                    "New description title has been generated : " +
-                        "$RED${interaction.description} - ${interaction.hashCode()}$RESET"
-                )
-            }
-
-            existing != null              -> this
-            else                          -> {
+            hasChanged ->
+                    addInteraction(
+                                    interaction.copy(
+                                            description =
+                                                    "${interaction.description} - ${interaction.hashCode()}"
+                                    )
+                            )
+                            .also {
+                                println(printDifferences(existing!!, interaction))
+                                println(
+                                        "New description title has been generated : " +
+                                                "$RED${interaction.description} - ${interaction.hashCode()}$RESET"
+                                )
+                            }
+            existing != null -> this
+            else -> {
                 interactionsByDescription[interaction.description] = interaction
                 descriptions.add(interaction.description)
                 this
@@ -78,44 +98,52 @@ internal data class PactToWrite(
     }
 
     private fun printDiff(diff: DiffMatchPatch.Diff): String =
-        when (diff.operation) {
-            DiffMatchPatch.Operation.EQUAL, null -> " ${diff.text}\n"
-            DiffMatchPatch.Operation.DELETE      -> green("- ${diff.text}\n")
-            DiffMatchPatch.Operation.INSERT      -> red("+ ${diff.text}\n")
-        }
+            when (diff.operation) {
+                DiffMatchPatch.Operation.EQUAL, null -> " ${diff.text}\n"
+                DiffMatchPatch.Operation.DELETE -> green("- ${diff.text}\n")
+                DiffMatchPatch.Operation.INSERT -> red("+ ${diff.text}\n")
+            }
 
     private fun toReadableConsoleMessage(
-        description: String,
-        diffs: LinkedList<DiffMatchPatch.Diff>
+            description: String,
+            diffs: LinkedList<DiffMatchPatch.Diff>
     ): String {
-        val sb = StringBuilder(
-            "${red("Received interaction")} does not match ${
+        val sb =
+                StringBuilder(
+                        "${red("Received interaction")} does not match ${
                 green("captured interaction: \"$description\"")
             }\n\n${
                 green("-Captured")
             }\n${red("+Received")}\n\n"
-        )
+                )
 
         diffMatchPatch.diffCleanupSemantic(diffs)
         diffs.forEach { diff -> sb.append(printDiff(diff)) }
         return sb.toString()
     }
 
-    private val pactFile get() = "${consumer}-${providerMetaData.name}.json"
-    internal fun write(directory: String) {
+    private val pactFile
+        get() = "${consumer}-${providerMetaData.name}.json"
+    internal fun write() {
         if (descriptions.isEmpty()) return
-        File(directory, pactFile).apply {
+        File(outputDirectory, pactFile).apply {
             val path = Paths.get(parentFile.path)
             if (!exists()) {
                 Files.createDirectories(path)
             }
-            val pact = Pact(consumer, providerMetaData, descriptions.map { interactionsByDescription.getValue(it) })
+            val pact =
+                    Pact(
+                            consumer,
+                            providerMetaData,
+                            descriptions.map { interactionsByDescription.getValue(it) }
+                    )
             writeText(pact.toPrettyJson())
+            println("[$id] Successfully written pact to ${this.path}")
         }
     }
 
     private fun Any.toPrettyJson() =
-        PACT_OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this)
+            PACT_OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this)
 
     companion object {
         private const val RESET = "\u001B[0m"
@@ -125,6 +153,7 @@ internal data class PactToWrite(
         fun green(s: String): String = "$GREEN$s$RESET"
         fun red(s: String): String = "$RED$s$RESET"
 
-        private val PACT_OBJECT_MAPPER = ObjectMapper().apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
+        private val PACT_OBJECT_MAPPER =
+                ObjectMapper().apply { setSerializationInclusion(JsonInclude.Include.NON_NULL) }
     }
 }

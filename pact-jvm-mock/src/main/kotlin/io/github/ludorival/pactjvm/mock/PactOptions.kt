@@ -11,6 +11,8 @@ class PactOptions private constructor(
     val adapters: List<PactMockAdapter>
 ) {
 
+    fun id(providerName: String) = "${consumer}-${providerName}-${isDeterministic}"
+
     class Builder {
         var consumer: String = ""
         var pactDirectory: String = "./src/test/resources/pacts"

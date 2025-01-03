@@ -1,0 +1,59 @@
+{
+  "consumer" : {
+    "name" : "mockito-test-consumer"
+  },
+  "provider" : {
+    "name" : "user-service"
+  },
+  "interactions" : [ {
+    "providerStates" : [ {
+      "name" : "The user has a preferred shopping list",
+      "params" : {
+        "userId" : 123
+      }
+    } ],
+    "description" : "Get user profile",
+    "request" : {
+      "method" : "GET",
+      "path" : "/user-service/v1/user/123"
+    },
+    "response" : {
+      "body" : {
+        "id" : 123,
+        "name" : "User name",
+        "email" : "user@email.com",
+        "userPreferences" : {
+          "preferredShoppingListId" : 1
+        }
+      },
+      "status" : 200,
+      "headers" : { }
+    }
+  }, {
+    "description" : "Get user profile - -242716666",
+    "request" : {
+      "method" : "GET",
+      "path" : "/user-service/v1/user/123"
+    },
+    "response" : {
+      "body" : {
+        "id" : 123,
+        "name" : "User name",
+        "email" : "user@email.com",
+        "userPreferences" : {
+          "preferredShoppingListId" : 1
+        }
+      },
+      "status" : 200,
+      "headers" : { }
+    }
+  } ],
+  "metadata" : {
+    "pactSpecification" : {
+      "version" : "3.0.0"
+    },
+    "pactJvm" : {
+      "version" : "4.0.10"
+    }
+  }
+}
