@@ -12,6 +12,7 @@ import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingServiceAppl
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingServiceRestController
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.context.SpringBootTest
