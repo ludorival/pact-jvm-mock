@@ -61,7 +61,7 @@ internal data class PactToWrite(
                     addInteraction(
                                     interaction.copy(
                                             description =
-                                                    "${interaction.description} - ${interaction.hashCode()}"
+                                                    "${interaction.description} - ${interactionsByDescription.keys.count { it.startsWith(interaction.description) }}"
                                     )
                             )
                             .also {
