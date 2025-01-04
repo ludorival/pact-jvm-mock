@@ -46,6 +46,9 @@ internal object PactMock : CallInterceptor {
     }
 
     override fun <T> interceptAndGet(call: Call, response: Result<T>, interactionBuilder: InteractionBuilder): T {
+        if (currentTestName == null) {
+            return response.getOrThrow()
+        }
         val adapter = pactConfiguration.getAdapterFor(call)
         return if (adapter != null) {
             val interaction = adapter.buildInteraction(call, response, interactionBuilder)

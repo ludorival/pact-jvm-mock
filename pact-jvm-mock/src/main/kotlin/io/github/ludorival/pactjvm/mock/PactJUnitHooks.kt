@@ -3,12 +3,13 @@ package io.github.ludorival.pactjvm.mock
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.KClass
 
-class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterAllCallback {
+class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback {
     companion object {
         private const val NAMESPACE = "io.github.ludorival.pactjvm.mock"
         private const val PACT_CONFIG_KEY = "pactConfig"
@@ -52,6 +53,10 @@ class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterAllCallback {
         } catch (e: Exception) {
             null
         }
+    }
+
+    override fun afterEach(context: ExtensionContext) {
+        PactMock.currentTestName = null
     }
 
     override fun afterAll(context: ExtensionContext) {
