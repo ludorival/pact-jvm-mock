@@ -24,6 +24,12 @@ internal object PactMock: CallInterceptor {
     }
 
 
+    fun clearPact(providerName: String) {
+        pacts.remove(pactOptions.id(providerName))
+    }
+
+    fun getCurrentPact(providerName: String) = pacts.get(pactOptions.id(providerName))?.pact
+
     private fun getPact(providerName: String) = pacts.getOrPut(pactOptions.id(providerName)) {
         PactToWrite(providerName, pactOptions)
     }

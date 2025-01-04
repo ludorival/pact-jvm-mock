@@ -43,3 +43,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+pact-jvm-mock-test/src/test/resources/pacts/shopping-list-service1.json

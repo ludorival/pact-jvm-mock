@@ -19,6 +19,18 @@ fun pactOptions(builder: PactOptions.Builder.() -> Unit) =
 
 fun Pact.Interaction.getConsumerName() = request.path.split("/").first { it.isNotBlank() }
 
+fun state(name: String, params: Map<String, Any?>? = null) = Pact.Interaction.ProviderState(name, params)
+
+fun <E:Any> anError(error: E) = PactMockResponseError(error)
+
+fun getCurrentPact(providerName: String): Pact? {
+    return PactMock.getCurrentPact(providerName)
+}
+
+fun clearPact(providerName: String) {
+    PactMock.clearPact(providerName)
+}
+
 typealias DetermineProviderFromInteraction = (Pact.Interaction) -> String
 
 typealias ObjectMapperCustomizer = (String) -> ObjectMapper?

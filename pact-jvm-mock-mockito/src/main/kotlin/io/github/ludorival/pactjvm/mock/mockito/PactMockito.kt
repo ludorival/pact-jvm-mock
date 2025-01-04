@@ -18,9 +18,6 @@ import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.Mockito;
 
-class MockitoAnswerScope<T>(private val ongoingStubbing: OngoingStubbing<T>) : InteractionBuilder by InteractionBuilderImpl() {
-    fun <E : Any> anError(response: E): Nothing = throw PactMockResponseError(response)
-}
 
 class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing<T>) : OngoingStubbing<T> by ongoingStubbing {
 
@@ -43,8 +40,8 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
         interactionBuilder.responseMatchingRules(block)
     }
 
-    override fun thenAnswer(answer: Answer<*>): OngoingStubbing<T> {
-        return ongoingStubbing.thenAnswer { invocation ->
+    fun andThenAnswer(answer: Answer<*>): PactMockitoOngoingStubbing<T>  {
+        return PactMockitoOngoingStubbing(ongoingStubbing.thenAnswer { invocation ->
             val result = runCatching { answer.answer(invocation) }
             CallInterceptor.getInstance()
                 .interceptAndGet(
@@ -59,43 +56,48 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
                         result,
                         interactionBuilder
                 )
-        }
+        })
     }
 
-    override fun then(answer: Answer<*>): OngoingStubbing<T> = thenAnswer(answer)
+    override fun thenAnswer(answer: Answer<*>): OngoingStubbing<T> = andThenAnswer(answer)
 
-    override fun thenReturn(value: T): OngoingStubbing<T> = thenAnswer(Returns(value))
+    fun andThen(answer: Answer<*>): PactMockitoOngoingStubbing<T> = andThenAnswer(answer)
+
+    override fun then(answer: Answer<*>): OngoingStubbing<T> = andThenAnswer(answer)
+
+    fun andThenReturn(value: T): PactMockitoOngoingStubbing<T> = andThenAnswer(Returns(value))
+
+    override fun thenReturn(value: T): OngoingStubbing<T> = andThenAnswer(Returns(value))
 
     override fun thenReturn(value: T, vararg values: T): OngoingStubbing<T> {
-        var stubbing = thenReturn(value)
+        var stubbing = andThenReturn(value)
         for (v in values) {
-            stubbing = stubbing.thenReturn(v)
+            stubbing = stubbing.andThenReturn(v)
         }
         return stubbing
     }
 
-    private fun thenThrow(throwable: Throwable): OngoingStubbing<T> =
-        thenAnswer(ThrowsException(throwable))
+    fun andThenThrow(throwable: Throwable): PactMockitoOngoingStubbing<T> = andThenAnswer(ThrowsException(throwable))
 
     override fun thenThrow(vararg throwables: Throwable): OngoingStubbing<T> {
-        var stubbing: OngoingStubbing<T>? = null
+        var stubbing: PactMockitoOngoingStubbing<T>? = null
         for (t in throwables) {
-            stubbing = if (stubbing == null) thenThrow(t) else stubbing.thenThrow(t)
+            stubbing = if (stubbing == null) andThenThrow(t) else stubbing.andThenThrow(t)
         }
         return stubbing ?: error("No exception thrown")
     }
 
-    override fun thenThrow(throwableType: Class<out Throwable>): OngoingStubbing<T> {
-        return thenAnswer(ThrowsExceptionForClassType(throwableType))
-    }
+    fun andThenThrow(throwableType: Class<out Throwable>): PactMockitoOngoingStubbing<T> = andThenAnswer(ThrowsExceptionForClassType(throwableType))
+    
+    override fun thenThrow(throwableType: Class<out Throwable>): OngoingStubbing<T> = andThenThrow(throwableType)
 
     override fun thenThrow(
         toBeThrown: Class<out Throwable>,
         vararg nextToBeThrown: Class<out Throwable>
     ): OngoingStubbing<T> {
-        var stubbing = thenThrow(toBeThrown)
+        var stubbing = andThenThrow(toBeThrown)
         for (t in nextToBeThrown) {
-            stubbing = stubbing.thenThrow(t)
+            stubbing = stubbing.andThenThrow(t)
         }
         return stubbing
     }

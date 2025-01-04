@@ -2,44 +2,30 @@ package io.github.ludorival.pactjvm.mock.mockk
 
 import io.github.ludorival.pactjvm.mock.Call as MockCall
 import io.github.ludorival.pactjvm.mock.CallInterceptor
-import io.mockk.Answer
-import io.mockk.Call
-import io.mockk.ConstantAnswer
-import io.mockk.MockKAdditionalAnswerScope
-import io.mockk.MockKStubScope
+import io.github.ludorival.pactjvm.mock.InteractionBuilder
+import io.mockk.*
 
-infix fun <T, B> MockKStubScope<T, B>.willRespondWith(
-        answer: Answer<T>
-): MockKAdditionalAnswerScope<T, B> {
-    return willRespondWith { answer.answer(it) }
-}
+fun <T> uponReceiving(stubBlock: MockKMatcherScope.() -> T) = PactMockStubScope(every(stubBlock))
 
-infix fun <T, B> MockKStubScope<T, B>.willRespondWith(
-        answer: PactMockKAnswerScope<T, B>.(Call) -> T
-): MockKAdditionalAnswerScope<T, B> {
-    return answers {
-        val pactScope = PactMockKAnswerScope<T, B>(this)
-        val result = runCatching { answer.invoke(pactScope, it) }
-        CallInterceptor.getInstance()
-                .interceptAndGet(
-                        it.invocation.let {
-                            MockCall(
-                                    MockCall.Method(
-                                            it.method.name,
-                                            it.method.paramTypes.map { it.java }.toTypedArray()
-                                    ),
-                                    it.self,
-                                    it.args
-                            )
-                        },
-                        result,
-                        pactScope
+fun <T> uponCoReceiving(stubBlock: suspend MockKMatcherScope.() -> T) = PactMockStubScope(coEvery(stubBlock))
+fun <T> Answer<T>.interceptAndGet(
+    it: Call,
+    builder: InteractionBuilder
+): T {
+    val result = runCatching { answer(it) }
+    return CallInterceptor.getInstance()
+        .interceptAndGet(
+            it.invocation.let {
+                MockCall(
+                    MockCall.Method(
+                        it.method.name,
+                        it.method.paramTypes.map { it.java }.toTypedArray()
+                    ),
+                    it.self,
+                    it.args
                 )
-    }
-}
-
-infix fun <T, B> MockKStubScope<T, B>.willRespond(
-        returnValue: T
-): MockKAdditionalAnswerScope<T, B> {
-    return willRespondWith(ConstantAnswer(returnValue))
+            },
+            result,
+            builder
+        )
 }

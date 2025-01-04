@@ -30,7 +30,7 @@
       "headers" : { }
     }
   }, {
-    "description" : "Get user profile - -242716666",
+    "description" : "Get user profile - -1001992825",
     "request" : {
       "method" : "GET",
       "path" : "/user-service/v1/user/123"

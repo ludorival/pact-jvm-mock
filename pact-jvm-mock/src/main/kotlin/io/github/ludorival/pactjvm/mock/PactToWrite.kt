@@ -43,6 +43,13 @@ internal data class PactToWrite(
     val objectMapper
         get() = providerMetaData.customObjectMapper ?: PACT_OBJECT_MAPPER
 
+    val pact: Pact
+        get() = Pact(
+            consumer,
+            providerMetaData,
+            descriptions.map { interactionsByDescription.getValue(it) }
+    )
+    
     fun addInteraction(interaction: Pact.Interaction): PactToWrite {
         val existing = interactionsByDescription[interaction.description]
         val hasChanged = existing != null && interaction != existing

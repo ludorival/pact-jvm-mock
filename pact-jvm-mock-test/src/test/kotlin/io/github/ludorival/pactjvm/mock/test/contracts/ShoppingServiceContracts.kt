@@ -1,120 +1,100 @@
 package io.github.ludorival.pactjvm.mock.test.contracts
 
+import io.github.ludorival.pactjvm.mock.Matcher
+import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
+import io.github.ludorival.pactjvm.mock.state
 import io.github.ludorival.pactjvm.mock.test.EMPTY_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.test.PREFERRED_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.test.SHOPPING_LIST_TO_DELETE
 import io.github.ludorival.pactjvm.mock.test.USER_ID
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingList
-import io.github.ludorival.pactjvm.mock.mockk.willRespond
-import io.github.ludorival.pactjvm.mock.mockk.willRespondWith
-import io.github.ludorival.pactjvm.mock.Matcher
-import io.mockk.every
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.RestTemplate
+import io.github.ludorival.pactjvm.mock.anError
 import java.net.URI
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpMethod
+import org.springframework.http.ResponseEntity
+import org.springframework.web.client.RestTemplate
 
-
-fun RestTemplate.willCreateShoppingList(description: String? = null) = every {
-    postForEntity(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList::class.java)
-    )
-} willRespondWith {
-    description?.let {
-        this.description(it)
-    }
-    providerState("the shopping list is empty", mapOf("userId" to USER_ID))
-    responseMatchingRules {
-        body("created_at", Matcher(Matcher.MatchEnum.TYPE))
-    }
-    ResponseEntity.ok(
-        EMPTY_SHOPPING_LIST
-    )
-}
+fun RestTemplate.willCreateShoppingList(description: String? = null) =
+        uponReceiving {
+            postForEntity(
+                    match<URI> { it.path.contains("shopping-service") },
+                    any(),
+                    eq(ShoppingList::class.java)
+            )
+        }
+        .withDescription(description)
+        .given(state("the shopping list is empty", mapOf("userId" to USER_ID)))
+        .macthingResponse { body("created_at", Matcher(Matcher.MatchEnum.TYPE)) } returns
+        ResponseEntity.ok(EMPTY_SHOPPING_LIST)
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-fun RestTemplate.willReturnAnErrorWhenCreateShoppingList() = every {
-    postForEntity(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList::class.java)
-    )
-} willRespondWith {
-    description("should return a 400 Bad request")
-    providerState("The request should return a 400 Bad request")
-    anError(ResponseEntity.badRequest().body("The title contains unexpected character"))
-}
+fun RestTemplate.willReturnAnErrorWhenCreateShoppingList() =
+        uponReceiving {
+            postForEntity(
+                    match<URI> { it.path.contains("shopping-service") },
+                    any(),
+                    eq(ShoppingList::class.java)
+            )
+        }
+        .withDescription("should return a 400 Bad request")
+        .given(state("The request should return a 400 Bad request")) throws anError(
+        ResponseEntity.badRequest().body("The title contains unexpected character"))
 
-fun RestTemplate.willGetShoppingList() = every {
-    getForEntity(
-        match<String> { it.contains("shopping-service/user/$USER_ID/list") },
-        ShoppingList::class.java
-    )
-} willRespond ResponseEntity.ok(
-    PREFERRED_SHOPPING_LIST
-)
+fun RestTemplate.willGetShoppingList() =
+        uponReceiving {
+            getForEntity(
+                    match<String> { it.contains("shopping-service/user/$USER_ID/list") },
+                    ShoppingList::class.java
+            )
+        } returns
+        ResponseEntity.ok(PREFERRED_SHOPPING_LIST)
 
-fun RestTemplate.willPatchShoppingItem() = every {
-    patchForObject(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList.Item::class.java)
-    )
-} willRespondWith {
-    description("Patch a shopping item")
-    val item = arg<ShoppingList.Item>(1)
-    item
-}
+fun RestTemplate.willPatchShoppingItem() =
+        uponReceiving {
+            patchForObject(
+                    match<URI> { it.path.contains("shopping-service") },
+                    any(),
+                    eq(ShoppingList.Item::class.java)
+            )
+        }
+        .withDescription("Patch a shopping item") answers {
+            arg<ShoppingList.Item>(1)
+        }
 
-fun RestTemplate.willListTwoShoppingLists() = every {
-    exchange(
-        match<URI> { it.path.contains("shopping-service") },
-        HttpMethod.GET,
-        any(),
-        any<ParameterizedTypeReference<List<ShoppingList>>>()
-    )
-} willRespondWith {
-    description("list two shopping lists")
-    requestMatchingRules {
-        header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
-    }
-    responseMatchingRules {
-        body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
-        body("[*].created_at", Matcher(Matcher.MatchEnum.TYPE))
-    }
-    println(
-        "I can have access to $args - $matcher - " +
-            "$self - $nArgs -${firstArg<Any>()} - ${secondArg<Any>()} ${thirdArg<Any>()} ${lastArg<Any>()}"
-    )
-    ResponseEntity.ok(
-        listOf(
-            PREFERRED_SHOPPING_LIST,
-            SHOPPING_LIST_TO_DELETE
-        )
-    )
-}
+fun RestTemplate.willListTwoShoppingLists() =
+        uponReceiving {
+            exchange(
+                    match<URI> { it.path.contains("shopping-service") },
+                    HttpMethod.GET,
+                    any(),
+                    any<ParameterizedTypeReference<List<ShoppingList>>>()
+            )
+        }
+        .withDescription("list two shopping lists")
+        .matchingRequest {
+            header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
+        }
+        .macthingResponse {
+            body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
+            body("[*].created_at", Matcher(Matcher.MatchEnum.TYPE))
+        } returns
+        ResponseEntity.ok(listOf(PREFERRED_SHOPPING_LIST, SHOPPING_LIST_TO_DELETE))
 
-fun RestTemplate.willDeleteShoppingItem() = every {
-    delete(
-        match<URI> { it.path.contains("shopping-service") },
-    )
-} willRespondWith {
-    description("delete shopping item")
-}
+fun RestTemplate.willDeleteShoppingItem() =
+        uponReceiving {
+            delete(
+                    match<URI> { it.path.contains("shopping-service") },
+            )
+        }
+        .withDescription("delete shopping item")
+        .macthingResponse {} returns
+        Unit
 
-fun RestTemplate.willUpdateShoppingList() = every {
-    put(
-        match<URI> { it.path.contains("shopping-service") },
-        any()
-    )
-} willRespondWith {
-    description("update shopping list")
-    println("I can have access to scope $scope")
-
-}
+fun RestTemplate.willUpdateShoppingList() =
+        uponReceiving {
+            put(match<URI> { it.path.contains("shopping-service") }, any())
+        }
+        .withDescription("update shopping list")
+        .macthingResponse {} returns
+        Unit
