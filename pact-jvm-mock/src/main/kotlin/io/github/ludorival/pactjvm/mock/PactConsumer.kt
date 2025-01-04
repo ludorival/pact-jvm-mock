@@ -8,4 +8,4 @@ import kotlin.reflect.KClass
 @Retention(RUNTIME)
 @Target(CLASS)
 @ExtendWith(PactJUnitHooks::class)
-annotation class PactConsumer(val value: KClass<*>)
+annotation class PactConsumer(val value: KClass<out PactConfiguration>)

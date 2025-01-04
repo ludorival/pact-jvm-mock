@@ -69,20 +69,13 @@ Or if you are using Maven:
 Next, you'll need to configure the library to use your existing [Mockk](https://github.com/mockk/mockk) mocks.
 
 For example, let's say you want to leverage existing mock of Spring RestTemplate.
-Create a Kotlin object (or use an existing one) which will hold the `pactOptions`. Here is a minimal example:
+Create a Kotlin object (or use an existing one) implementing `PactConfiguration`. Here is a minimal example:
 
 ```kotlin
-import io.github.ludorival.pactjvm.mock.pactOptions
+import io.github.ludorival.pactjvm.mock.PactConfiguration
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter
 
-object MyPactMock {
-
-    val pactOptions = pactOptions {
-            consumer = "my-service"
-            // allow to intercept Spring RestTemplate mocks
-            addAdapter(SpringRestTemplateMockkAdapter())
-        }
-} 
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter())
 ```
 
 ### Extend your tests files
@@ -93,7 +86,7 @@ you have to extend your test classes where you need to record the interactions w
 ```kotlin
 import io.github.ludorival.pactjvm.mock.mockk.PactConsumer
 
-@PactConsumer(MyPactMock::class)
+@PactConsumer(MyServicePactConfig::class)
 class ShoppingServiceClientTest 
 ```
 
@@ -124,19 +117,6 @@ All your existing Mockk matchers and features continue to work exactly the same 
 - Exception throwing with `throws`
 - Coroutines with `coAnswers`
 
-Example with dynamic responses:
-```kotlin
-uponReceiving {
-    restTemplate.patchForObject(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList.Item::class.java)
-    )
-} answers {
-    val item = arg<ShoppingList.Item>(1)
-    item
-}
-```
 
 This migration can be easily done with a `Replace All` in your IDE, replacing `every` with `uponReceiving`.
 
@@ -190,16 +170,12 @@ uponReceiving(restTemplate.exchange(
 Note: Don't forget to configure your test class with the `@PactConsumer` annotation:
 
 ```java
-@PactConsumer(MyPactOptions.class)
+@PactConsumer(MyPactConfiguration.class)
 public class MyTest {
-    public static class MyPactOptions {
-        public static final PactOptions pactOptions;
+    public static class MyPactConfiguration extends PactConfiguration {
         
-        static {
-            PactOptions.Builder builder = new PactOptions.Builder();
-            builder.setConsumer("my-consumer");
-            builder.addAdapter(new SpringRestTemplateMockkAdapter());
-            pactOptions = builder.build();
+        public MyPactConfiguration() {
+            super("my-consumer", new SpringRestTemplateMockkAdapter());
         }
     }
     // ... test methods
@@ -252,6 +228,9 @@ uponReceiving {
     body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
 } returns ResponseEntity.ok(listOf(USER_1, USER_2))
 ```
+In this example:
+- The request matching rule ensures the Authorization header matches the pattern "Bearer" followed by any string
+- The response matching rule specifies that each user ID in the array should match by type rather than exact value
 
 ### Client error
 
@@ -271,19 +250,16 @@ uponReceiving {
 You can specify a custom ObjectMapper for serializing request/response bodies for specific providers. This is useful when you need special serialization handling, like custom date formats or naming strategies.
 
 ```kotlin
-// MyPactMock.kt
-init {
-    pactOptions {
-        consumer = "my-service"
-        isDeterministic = true // <-- force to be deterministic
-        addAdapter(SpringRestTemplateMockkAdapter())
-        objectMapperCustomizer = {
-            Jackson2ObjectMapperBuilder()
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-            .build()
-        }
-    }
-}
+// MyServicePactConfig.kt
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter()) {
+
+    override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
+        .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        .serializerByType(
+            LocalDate::class.java,
+            serializerAsDefault<LocalDate>("2023-01-01")
+        ).build()
+} 
 
 ```
 
@@ -296,67 +272,31 @@ for `determineConsumerFromUrl`
 
 
 ```kotlin
-// MyPactMock.kt
-init {
-    pactOptions {
-        consumer = "my-service"
-        isDeterministic = true // <-- force to be deterministic
-        addAdapter(SpringRestTemplateMockkAdapter())
-        objectMapperCustomizer = {
-            Jackson2ObjectMapperBuilder()
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-                .serializerByType(
-                    LocalDate::class.java,
-                    serializerAsDefault<LocalDate>("2023-01-01")
-            ).build()
-        }
-    }
-}
+// MyServicePactConfig.kt
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter()) {
 
-```
-### Configure matching rules
-
-You can specify matching rules for both requests and responses to make your contracts more flexible. This is useful when you want to define patterns rather than exact values.
-
-```kotlin
-every {
-    restTemplate.exchange(
-        match<URI> { it.path.contains("user-service") },
-        HttpMethod.GET,
-        any(),
-        any<ParameterizedTypeReference<List<User>>>()
-    )
-} willRespondWith {
-    description("list users")
-    // Define rules for request headers
-    requestMatchingRules {
-        header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
-    }
-    // Define rules for response body
-    responseMatchingRules {
-        body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
-    }
-    ResponseEntity.ok(listOf(USER_1, USER_2))
-}
+    override fun isDeterministic() = true // <-- force to be deterministic
+    override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
+        .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        .serializerByType(
+            LocalDate::class.java,
+            serializerAsDefault<LocalDate>("2023-01-01")
+        ).build()
+} 
 ```
 
-In this example:
-- The request matching rule ensures the Authorization header matches the pattern "Bearer" followed by any string
-- The response matching rule specifies that each user ID in the array should match by type rather than exact value
 
 ### Change the pact directory
 
 By default, the generated pacts are stored in `src/test/resources/pacts`. You can configure that in the pact options:
 
 ```kotlin
-// MyPactMock.kt
-init {
-    pactOptions {
-        consumer = "my-service"
-        pactDirectory = "my-own-directory"
-        // ...
-    }
-}
+// MyServicePactConfig.kt
+object MyServicePactConfig : PactConfiguration("my-service") {
+
+    ...
+    override fun getPactDirectory() = "my-own-directory"
+} 
 
 ```
 
