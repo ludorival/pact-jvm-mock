@@ -11,17 +11,16 @@ import kotlin.reflect.KClass
 class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterAllCallback {
     companion object {
         private const val NAMESPACE = "io.github.ludorival.pactjvm.mock"
-        private const val PACT_OPTIONS_KEY = "pactOptions"
+        private const val PACT_CONFIG_KEY = "pactConfig"
     }
 
-    private fun setupPactOptions(value: Any?, context: ExtensionContext) {
-        if (value is PactOptions) {
-            PactMock.setPactOptions(value)
-            // Store PactOptions in the class-level ExtensionContext
-            context.root
-                .getStore(ExtensionContext.Namespace.create(NAMESPACE))
-                .put(PACT_OPTIONS_KEY, value)
-        }
+    private fun setupPactConfiguration(config: PactConfiguration, context: ExtensionContext) {
+        PactMock.setPactConfiguration(config)
+        
+        // Store PactConfiguration in the class-level ExtensionContext
+        context.root
+            .getStore(ExtensionContext.Namespace.create(NAMESPACE))
+            .put(PACT_CONFIG_KEY, config)
     }
 
     override fun beforeAll(context: ExtensionContext) {
@@ -29,12 +28,10 @@ class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterAllCallback {
             ?: error("PactConsumer annotation is expected")
         val configClass = annotation.value
         
+        val config = configClass.getConfiguration() ?: configClass.java.getConfiguration()
+            ?: throw IllegalArgumentException("No valid PactConfiguration implementation found in ${configClass.simpleName}. The class must be a Kotlin object or Java class with a public constructor implementing PactConfiguration.")
         
-        setupPactOptions(
-            configClass.getPactOptions() ?: configClass.java.getPactOptions() 
-                ?: throw IllegalArgumentException("No valid pactOptions found in ${configClass.simpleName}. We expect a static field named pactOptions or a Kotlin object with a property named pactOptions."),
-            context
-        )
+        setupPactConfiguration(config, context)
     }
 
     override fun beforeEach(context: ExtensionContext) {
@@ -42,20 +39,19 @@ class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterAllCallback {
         PactMock.currentTestName = context.displayName.substringBeforeLast("(")
     }
 
-    private fun KClass<*>.getPactOptions(): PactOptions? {
-        val kotlinObject = objectInstance
-        val property = members.firstOrNull { it.name == "pactOptions" }
-        return if (kotlinObject != null && property != null) {
-            val value = property.call(kotlinObject)
-            value as? PactOptions
-        } else null
+    private fun KClass<*>.getConfiguration(): PactConfiguration? {
+        return objectInstance as? PactConfiguration
     }
 
-    private fun Class<*>.getPactOptions(): PactOptions? {
-        val field = getDeclaredField("pactOptions")
-        field.isAccessible = true
-        val value = field.get(null)
-        return value as? PactOptions
+    private fun Class<*>.getConfiguration(): PactConfiguration? {
+        return try {
+            // Find the first public constructor
+            val constructor = declaredConstructors.firstOrNull { it.modifiers and java.lang.reflect.Modifier.PUBLIC != 0 }
+                ?: return null
+            constructor.newInstance() as? PactConfiguration
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun afterAll(context: ExtensionContext) {

@@ -14,11 +14,17 @@ inline fun <reified T> serializerWith(crossinline supplier: (JsonGenerator) -> U
 inline fun <reified T> serializerAsDefault(defaultValue: String) =
     serializerWith<T> { it.writeString(defaultValue) }
 
-fun pactOptions(builder: PactOptions.Builder.() -> Unit) =
-    PactOptions.Builder().apply(builder).build()
 
 fun Pact.Interaction.getConsumerName() = request.path.split("/").first { it.isNotBlank() }
 
-typealias DetermineProviderFromInteraction = (Pact.Interaction) -> String
+fun state(name: String, params: Map<String, Any?>? = null) = Pact.Interaction.ProviderState(name, params)
 
-typealias ObjectMapperCustomizer = (String) -> ObjectMapper?
+fun <E:Any> anError(error: E) = PactMockResponseError(error)
+
+fun getCurrentPact(providerName: String): Pact? {
+    return PactMock.getCurrentPact(providerName)
+}
+
+fun clearPact(providerName: String) {
+    PactMock.clearPact(providerName)
+}

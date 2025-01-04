@@ -2,7 +2,8 @@ package io.github.ludorival.pactjvm.mock.test;
 
 import io.github.ludorival.pactjvm.mock.mockito.PactMockito;
 import io.github.ludorival.pactjvm.mock.PactConsumer;
-import io.github.ludorival.pactjvm.mock.PactOptions;
+import io.github.ludorival.pactjvm.mock.PactConfiguration;
+import io.github.ludorival.pactjvm.mock.PactMockAdapter;
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter;
 import io.github.ludorival.pactjvm.mock.test.userservice.UserPreferences;
 import io.github.ludorival.pactjvm.mock.test.userservice.UserProfile;
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,18 +32,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 
-@PactConsumer(MockitoAdapterTest.TestPactOptions.class)
+@PactConsumer(MockitoAdapterTest.TestPactConfig.class)
 public class MockitoAdapterTest {
 
-    public static class TestPactOptions {
-        public static final PactOptions pactOptions;
-
-        static {
-            PactOptions.Builder builder = new PactOptions.Builder();
-            builder.setConsumer("mockito-test-consumer");
-            builder.addAdapter(new SpringRestTemplateMockkAdapter());
-            pactOptions = builder.build();
+    public static class TestPactConfig extends PactConfiguration {
+        public TestPactConfig() {
+            super("mockito-test-consumer", new SpringRestTemplateMockkAdapter());
         }
+
     }
 
     @Mock

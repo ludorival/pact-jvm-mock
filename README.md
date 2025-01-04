@@ -69,20 +69,13 @@ Or if you are using Maven:
 Next, you'll need to configure the library to use your existing [Mockk](https://github.com/mockk/mockk) mocks.
 
 For example, let's say you want to leverage existing mock of Spring RestTemplate.
-Create a Kotlin object (or use an existing one) which will hold the `pactOptions`. Here is a minimal example:
+Create a Kotlin object (or use an existing one) implementing `PactConfiguration`. Here is a minimal example:
 
 ```kotlin
-import io.github.ludorival.pactjvm.mock.pactOptions
+import io.github.ludorival.pactjvm.mock.PactConfiguration
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter
 
-object MyPactMock {
-
-    val pactOptions = pactOptions {
-            consumer = "my-service"
-            // allow to intercept Spring RestTemplate mocks
-            addAdapter(SpringRestTemplateMockkAdapter())
-        }
-} 
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter())
 ```
 
 ### Extend your tests files
@@ -93,240 +86,41 @@ you have to extend your test classes where you need to record the interactions w
 ```kotlin
 import io.github.ludorival.pactjvm.mock.mockk.PactConsumer
 
-@PactConsumer(MyPactMock::class)
+@PactConsumer(MyServicePactConfig::class)
 class ShoppingServiceClientTest 
 ```
 
 ### Migrate lightly your existing mocks
 
 Finally, you can use the library to generate your Pact contracts.
-`pact-jvm-mock` simplified the work by creating some extensions of [Mockk](https://github.com/mockk/mockk) functions.
 
-You can replace all your :
+#### Using with Mockk (Kotlin)
 
-- `returns` with `willRespond`
-- `answers` with `willRespondWith`
-
-Example:
-
-- An existing mock of `restTemplate` returning static response.
+The library is fully compatible with your existing Mockk code. You just need to replace all your `every` calls with `uponReceiving`:
 
 ```kotlin
+// Your existing Mockk code
 every {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-} returns ResponseEntity.ok(
-    USER_PROFILE
-)
-```
+} returns ResponseEntity.ok(USER_PROFILE)
 
-- becomes
-
-```kotlin
-every {
+// Simply becomes
+uponReceiving {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-} willRespond ResponseEntity.ok(
-    USER_PROFILE
-)
+} returns ResponseEntity.ok(USER_PROFILE)
 ```
 
-- Or a mock using `answers`
-
-```kotlin
-every {
-    restTemplate.patchForObject(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList.Item::class.java)
-    )
-} answers {
-    val item = arg<ShoppingList.Item>(1)
-    item
-}
-```
-
-- becomes
-
-```kotlin
-every {
-    restTemplate.patchForObject(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList.Item::class.java)
-    )
-} willRespondWith {
-    val item = arg<ShoppingList.Item>(1)
-    item
-}
-```
-
-Those changes can be easily done with a `Replace All` with your favourite IDE.
-
-**That's it !!**
-
-Run your tests, and you should see the generated pact files in your `src/test/resources/pacts`.
-
-## More configurations
-
-### Set a description
-
-By default, the description is building from the request details. You can set a description for each interaction.
-
-Use `willRespondWith` like
-
-```kotlin
-every {
-    restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-} willRespondWith {
-    description("get the user profile")
-    ResponseEntity.ok(
-        USER_PROFILE
-    )
-}
-
-```
-
-### Set provider states
-
-The provider state refers to the state of the API or service that is being tested.
-The provider state is the starting point for each test scenario, and it sets the conditions under which the provider
-will respond to requests from the consumer.
-
-To specify the provider states :
-
-```kotlin
-every {
-    restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-} willRespondWith {
-    description("get the user profile")
-    providerState("The user has a preferred shopping list")
-    ResponseEntity.ok(
-        USER_PROFILE
-    )
-}
-
-```
-
-### Client error
-
-`pact-jvm-mock` offers also a way to record Http errors. Like
-
-```kotlin
-every {
-    restTemplate.postForEntity(
-        match<URI> { it.path.contains("shopping-service") },
-        any(),
-        eq(ShoppingList::class.java)
-    )
-} willRespondWith {
-    providerState("The request should return a 400 Bad request")
-    anError(ResponseEntity.badRequest().body("The title contains unexpected character"))
-}
-```
-
-### Configure custom JSON ObjectMapper
-
-You can specify a custom ObjectMapper for serializing request/response bodies for specific providers. This is useful when you need special serialization handling, like custom date formats or naming strategies.
-
-```kotlin
-// MyPactMock.kt
-init {
-    pactOptions {
-        consumer = "my-service"
-        isDeterministic = true // <-- force to be deterministic
-        addAdapter(SpringRestTemplateMockkAdapter())
-        objectMapperCustomizer = {
-            Jackson2ObjectMapperBuilder()
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-            .build()
-        }
-    }
-}
-
-```
-
-### Make your contract deterministic
-
-To make your contract deterministic, you will need to provide a custom serializer for the type you want to be invariant.
-
-For example, let's say you have a date which will be generated at each test, you can pass a custom value
-for `determineConsumerFromUrl`
+All your existing Mockk matchers and features continue to work exactly the same way. The library supports:
+- Static responses with `returns`
+- Dynamic responses with `answers`
+- Multiple responses with `andThen`
+- Exception throwing with `throws`
+- Coroutines with `coAnswers`
 
 
-```kotlin
-// MyPactMock.kt
-init {
-    pactOptions {
-        consumer = "my-service"
-        isDeterministic = true // <-- force to be deterministic
-        addAdapter(SpringRestTemplateMockkAdapter())
-        objectMapperCustomizer = {
-            Jackson2ObjectMapperBuilder()
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-                .serializerByType(
-                    LocalDate::class.java,
-                    serializerAsDefault<LocalDate>("2023-01-01")
-            ).build()
-        }
-    }
-}
+This migration can be easily done with a `Replace All` in your IDE, replacing `every` with `uponReceiving`.
 
-```
-### Configure matching rules
-
-You can specify matching rules for both requests and responses to make your contracts more flexible. This is useful when you want to define patterns rather than exact values.
-
-```kotlin
-every {
-    restTemplate.exchange(
-        match<URI> { it.path.contains("user-service") },
-        HttpMethod.GET,
-        any(),
-        any<ParameterizedTypeReference<List<User>>>()
-    )
-} willRespondWith {
-    description("list users")
-    // Define rules for request headers
-    requestMatchingRules {
-        header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
-    }
-    // Define rules for response body
-    responseMatchingRules {
-        body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
-    }
-    ResponseEntity.ok(listOf(USER_1, USER_2))
-}
-```
-
-In this example:
-- The request matching rule ensures the Authorization header matches the pattern "Bearer" followed by any string
-- The response matching rule specifies that each user ID in the array should match by type rather than exact value
-
-### Change the pact directory
-
-By default, the generated pacts are stored in `src/test/resources/pacts`. You can configure that in the pact options:
-
-```kotlin
-// MyPactMock.kt
-init {
-    pactOptions {
-        consumer = "my-service"
-        pactDirectory = "my-own-directory"
-        // ...
-    }
-}
-
-```
-
-## Contributing
-
-pact-jvm-mock is an open-source project and contributions are welcome! If you're interested in contributing, please
-check out the [contributing guidelines](CONTRIBUTING.md).
-
-## License
-
-pact-jvm-mock is licensed under the [MIT License](LICENSE).
-
-### Using with Mockito (Java)
+#### Using with Mockito (Java)
 
 To use pact-jvm-mock with Mockito in Java, simply replace all your `Mockito.when` calls with `PactMockito.uponReceiving`:
 
@@ -351,13 +145,11 @@ uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.c
                     errorMessage.getBytes(StandardCharsets.UTF_8),
                     StandardCharsets.UTF_8
             ));
-
 ```
 
 You can also add optional configurations like descriptions, provider states, and matching rules:
 
 ```java
-// With optional configurations
 uponReceiving(restTemplate.exchange(
         any(URI.class),
         eq(HttpMethod.GET),
@@ -378,18 +170,141 @@ uponReceiving(restTemplate.exchange(
 Note: Don't forget to configure your test class with the `@PactConsumer` annotation:
 
 ```java
-@PactConsumer(MyPactOptions.class)
+@PactConsumer(MyPactConfiguration.class)
 public class MyTest {
-    public static class MyPactOptions {
-        public static final PactOptions pactOptions;
+    public static class MyPactConfiguration extends PactConfiguration {
         
-        static {
-            PactOptions.Builder builder = new PactOptions.Builder();
-            builder.setConsumer("my-consumer");
-            builder.addAdapter(new SpringRestTemplateMockkAdapter());
-            pactOptions = builder.build();
+        public MyPactConfiguration() {
+            super("my-consumer", new SpringRestTemplateMockkAdapter());
         }
     }
     // ... test methods
 }
 ```
+
+**That's it !!**
+
+Run your tests, and you should see the generated pact files in your `src/test/resources/pacts`.
+
+## More configurations
+
+### Set a description
+
+By default, the description is building from the current test name.You can set a description for each interaction using either `withDescription` or as part of the response chain:
+
+```kotlin
+uponReceiving {
+    restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
+} withDescription "get the user profile" returns ResponseEntity.ok(USER_PROFILE)
+
+```
+
+### Set provider states
+
+The provider state refers to the state of the API or service that is being tested.
+You can specify provider states using the `given` method:
+
+```kotlin
+uponReceiving {
+    restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
+} given state("The user has a preferred shopping list") returns ResponseEntity.ok(USER_PROFILE)
+```
+
+### Configure matching rules
+
+You can specify matching rules for both requests and responses using `matchingRequest` and `matchingResponse`:
+
+```kotlin
+uponReceiving {
+    restTemplate.exchange(
+        match<URI> { it.path.contains("user-service") },
+        HttpMethod.GET,
+        any(),
+        any<ParameterizedTypeReference<List<User>>>()
+    )
+} matchingRequest {
+    header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
+} matchingResponse {
+    body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
+} returns ResponseEntity.ok(listOf(USER_1, USER_2))
+```
+In this example:
+- The request matching rule ensures the Authorization header matches the pattern "Bearer" followed by any string
+- The response matching rule specifies that each user ID in the array should match by type rather than exact value
+
+### Client error
+
+`pact-jvm-mock` offers also a way to record Http errors thanks to the `throws anError()` method:
+
+```kotlin
+uponReceiving {
+    restTemplate.postForEntity(
+        match<URI> { it.path.contains("shopping-service") },
+        any(),
+        eq(ShoppingList::class.java)
+    ) given state("The request should return a 400 Bad request") throws anError(ResponseEntity.badRequest().body("The title contains unexpected character")) 
+```
+
+### Configure custom JSON ObjectMapper
+
+You can specify a custom ObjectMapper for serializing request/response bodies for specific providers. This is useful when you need special serialization handling, like custom date formats or naming strategies.
+
+```kotlin
+// MyServicePactConfig.kt
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter()) {
+
+    override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
+        .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        .serializerByType(
+            LocalDate::class.java,
+            serializerAsDefault<LocalDate>("2023-01-01")
+        ).build()
+} 
+
+```
+
+### Make your contract deterministic
+
+To make your contract deterministic, you will need to provide a custom serializer for the type you want to be invariant.
+
+For example, let's say you have a date which will be generated at each test, you can pass a custom value
+for `determineConsumerFromUrl`
+
+
+```kotlin
+// MyServicePactConfig.kt
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter()) {
+
+    override fun isDeterministic() = true // <-- force to be deterministic
+    override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
+        .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+        .serializerByType(
+            LocalDate::class.java,
+            serializerAsDefault<LocalDate>("2023-01-01")
+        ).build()
+} 
+```
+
+
+### Change the pact directory
+
+By default, the generated pacts are stored in `src/test/resources/pacts`. You can configure that in the pact options:
+
+```kotlin
+// MyServicePactConfig.kt
+object MyServicePactConfig : PactConfiguration("my-service") {
+
+    ...
+    override fun getPactDirectory() = "my-own-directory"
+} 
+
+```
+
+## Contributing
+
+pact-jvm-mock is an open-source project and contributions are welcome! If you're interested in contributing, please
+check out the [contributing guidelines](CONTRIBUTING.md).
+
+## License
+
+pact-jvm-mock is licensed under the [MIT License](LICENSE).

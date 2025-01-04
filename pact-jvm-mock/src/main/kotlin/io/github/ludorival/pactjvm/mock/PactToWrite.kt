@@ -18,16 +18,16 @@ internal data class PactToWrite(
 
     constructor(
             providerName: String,
-            pactOptions: PactOptions
+            pactConfiguration: PactConfiguration
     ) : this(
-            pactOptions.consumer,
+            pactConfiguration.consumer,
             ProviderMetaData(
                     providerName,
-                    pactOptions.objectMapperCustomizer.invoke(providerName),
-                    pactOptions.pactMetaData
+                    pactConfiguration.customizeObjectMapper(providerName),
+                    pactConfiguration.getPactMetaData()
             ),
-            pactOptions.isDeterministic,
-            pactOptions.pactDirectory
+            pactConfiguration.isDeterministic(),
+            pactConfiguration.getPactDirectory()
     )
     init {
         if (consumer.isBlank()) error("The consumer should not be empty")
@@ -42,6 +42,13 @@ internal data class PactToWrite(
 
     val objectMapper
         get() = providerMetaData.customObjectMapper ?: PACT_OBJECT_MAPPER
+
+    val pact: Pact
+        get() = Pact(
+            consumer,
+            providerMetaData,
+            descriptions.map { interactionsByDescription.getValue(it) }
+    )
 
     fun addInteraction(interaction: Pact.Interaction): PactToWrite {
         val existing = interactionsByDescription[interaction.description]
@@ -82,7 +89,7 @@ internal data class PactToWrite(
                     |The Pact contract should be deterministic.
                     |Possible solutions:
                     |1) Force the Pact to be deterministic
-                    |pactOptions {
+                    |PactConfiguration {
                     |  consumer = "..."
                     |  addAdapter(...)
                     |  isDeterministic = true // <-- set to true 

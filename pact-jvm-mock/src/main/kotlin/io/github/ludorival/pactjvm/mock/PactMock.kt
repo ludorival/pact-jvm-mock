@@ -4,18 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.concurrent.ConcurrentHashMap
 
-internal object PactMock: CallInterceptor {
+internal object PactMock : CallInterceptor {
 
+    private var pactConfiguration: PactConfiguration = object : PactConfiguration("") {}
 
-    private var pactOptions = PactOptions.DEFAULT_OPTIONS
-    internal fun setPactOptions(pactOptions: PactOptions) {
-        this.pactOptions = pactOptions
+    internal fun setPactConfiguration(config: PactConfiguration) {
+        this.pactConfiguration = config
     }
 
     internal var currentTestName: String? = null
 
     private val pacts: ConcurrentHashMap<String, PactToWrite> = ConcurrentHashMap()
-
 
     fun writePacts() {
         pacts.values.forEach {
@@ -23,16 +22,22 @@ internal object PactMock: CallInterceptor {
         }
     }
 
-
-    private fun getPact(providerName: String) = pacts.getOrPut(pactOptions.id(providerName)) {
-        PactToWrite(providerName, pactOptions)
+    fun clearPact(providerName: String) {
+        pacts.remove(getId(providerName))
     }
 
-    private fun getAdapterFor(call: Call) = pactOptions.adapters.find { it.support(call) }
+    fun getCurrentPact(providerName: String) = pacts[getId(providerName)]?.pact
+
+    private fun getId(providerName: String) = "${pactConfiguration.consumer}-$providerName-${pactConfiguration.isDeterministic()}"
+
+    private fun getPact(providerName: String) = pacts.getOrPut(getId(providerName)) {
+        PactToWrite(providerName, pactConfiguration)
+    }
+
     private fun addInteraction(interaction: Pact.Interaction) {
-        val providerName = pactOptions.determineProviderFromInteraction.invoke(interaction)
+        val providerName = pactConfiguration.determineProviderFromInteraction(interaction)
         val pactToWrite = getPact(providerName)
-        pacts[pactToWrite.id] = pactToWrite.addInteraction(
+        pacts[getId(providerName)] = pactToWrite.addInteraction(
             serializeRequestAndResponse(
                 interaction,
                 pactToWrite.objectMapper
@@ -41,7 +46,7 @@ internal object PactMock: CallInterceptor {
     }
 
     override fun <T> interceptAndGet(call: Call, response: Result<T>, interactionBuilder: InteractionBuilder): T {
-        val adapter = getAdapterFor(call)
+        val adapter = pactConfiguration.getAdapterFor(call)
         return if (adapter != null) {
             val interaction = adapter.buildInteraction(call, response, interactionBuilder)
             addInteraction(interaction)
