@@ -180,7 +180,7 @@ project(":pact-jvm-mock-mockk") {
 project(":pact-jvm-mock-mockito") {
     dependencies {
         api(project(":pact-jvm-mock"))
-        compileOnly("org.mockito:mockito-core:5.11.0")
+        compileOnly("org.mockito:mockito-core:5.15.2")
     }
 }
 
@@ -205,8 +205,8 @@ project(":pact-jvm-mock-test") {
         testImplementation("io.github.ludorival:kotlin-tdd:2.2.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
-        testImplementation("org.mockito:mockito-core:5.11.0")
-        testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
+        testImplementation("org.mockito:mockito-core:5.15.2")
+        testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
         testImplementation("org.springframework.boot:spring-boot-starter-test:3.0.2")
         testImplementation("au.com.dius.pact.provider:junit5:4.6.16")
         testImplementation("au.com.dius.pact.provider:junit5spring:4.6.16")
