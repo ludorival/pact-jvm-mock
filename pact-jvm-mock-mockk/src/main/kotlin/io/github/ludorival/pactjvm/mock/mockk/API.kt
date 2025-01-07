@@ -5,9 +5,9 @@ import io.github.ludorival.pactjvm.mock.CallInterceptor
 import io.github.ludorival.pactjvm.mock.InteractionBuilder
 import io.mockk.*
 
-fun <T> uponReceiving(stubBlock: MockKMatcherScope.() -> T) = PactMockStubScope(every(stubBlock))
+fun <T> uponReceiving(stubBlock: MockKMatcherScope.() -> T) = PactMockKStubScope(every(stubBlock))
 
-fun <T> uponCoReceiving(stubBlock: suspend MockKMatcherScope.() -> T) = PactMockStubScope(coEvery(stubBlock))
+fun <T> uponCoReceiving(stubBlock: suspend MockKMatcherScope.() -> T) = PactMockKStubScope(coEvery(stubBlock))
 fun <T> Answer<T>.interceptAndGet(
     it: Call,
     builder: InteractionBuilder

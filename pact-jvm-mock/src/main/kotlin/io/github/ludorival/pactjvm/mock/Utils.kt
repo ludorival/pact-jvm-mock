@@ -17,8 +17,6 @@ inline fun <reified T> serializerAsDefault(defaultValue: String) =
 
 fun Pact.Interaction.getConsumerName() = request.path.split("/").first { it.isNotBlank() }
 
-fun state(name: String, params: Map<String, Any?>? = null) = Pact.Interaction.ProviderState(name, params)
-
 fun <E:Any> anError(error: E) = PactMockResponseError(error)
 
 fun getCurrentPact(providerName: String): Pact? {

@@ -73,9 +73,9 @@ Create a Kotlin object (or use an existing one) implementing `PactConfiguration`
 
 ```kotlin
 import io.github.ludorival.pactjvm.mock.PactConfiguration
-import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
 
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter())
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter())
 ```
 
 ### Extend your tests files
@@ -137,7 +137,7 @@ uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)
 // With error response
 uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class)))
     .withDescription("Create user profile - validation error")
-    .withProviderState("Invalid user data", Collections.emptyMap())
+    .given(builder -> builder.state("Invalid user data", Collections.emptyMap()))
     .thenThrow(HttpClientErrorException.BadRequest.create(
                     HttpStatus.BAD_REQUEST,
                     errorMessage,
@@ -157,13 +157,9 @@ uponReceiving(restTemplate.exchange(
         any(ParameterizedTypeReference.class)
     ))
     .withDescription("List users")
-    .withProviderState("Users exist", Collections.emptyMap())
-    .withRequestMatchingRules(rules -> {
-        rules.header("Authorization", new Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"));
-    })
-    .withResponseMatchingRules(rules -> {
-        rules.body("[*].id", new Matcher(Matcher.MatchEnum.TYPE));
-    })
+    .given("Users exist", Collections.emptyMap())
+    .matchingRequest(rules -> rules.header("Authorization", new Matcher(Matcher.MatchEnum.REGEX, "Bearer .*")))
+    .matchingResponse(rules -> rules.body("[*].id", new Matcher(Matcher.MatchEnum.TYPE)))
     .thenReturn(ResponseEntity.ok(Arrays.asList(USER_1, USER_2)));
 ```
 
@@ -175,7 +171,7 @@ public class MyTest {
     public static class MyPactConfiguration extends PactConfiguration {
         
         public MyPactConfiguration() {
-            super("my-consumer", new SpringRestTemplateMockkAdapter());
+            super("my-consumer", new SpringRestTemplateMockAdapter());
         }
     }
     // ... test methods
@@ -195,7 +191,7 @@ By default, the description is building from the current test name.You can set a
 ```kotlin
 uponReceiving {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-} withDescription "get the user profile" returns ResponseEntity.ok(USER_PROFILE)
+} withDescription { "get the user profile" } returns ResponseEntity.ok(USER_PROFILE)
 
 ```
 
@@ -207,7 +203,9 @@ You can specify provider states using the `given` method:
 ```kotlin
 uponReceiving {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
-} given state("The user has a preferred shopping list") returns ResponseEntity.ok(USER_PROFILE)
+} given { 
+    state("The user has a preferred shopping list") 
+} returns ResponseEntity.ok(USER_PROFILE)
 ```
 
 ### Configure matching rules
@@ -242,7 +240,9 @@ uponReceiving {
         match<URI> { it.path.contains("shopping-service") },
         any(),
         eq(ShoppingList::class.java)
-    ) given state("The request should return a 400 Bad request") throws anError(ResponseEntity.badRequest().body("The title contains unexpected character")) 
+    ) given {
+        state("The request should return a 400 Bad request") 
+    } throws anError(ResponseEntity.badRequest().body("The title contains unexpected character")) 
 ```
 
 ### Configure custom JSON ObjectMapper
@@ -251,7 +251,7 @@ You can specify a custom ObjectMapper for serializing request/response bodies fo
 
 ```kotlin
 // MyServicePactConfig.kt
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter()) {
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
 
     override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
         .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
@@ -273,7 +273,7 @@ for `determineConsumerFromUrl`
 
 ```kotlin
 // MyServicePactConfig.kt
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockkAdapter()) {
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
 
     override fun isDeterministic() = true // <-- force to be deterministic
     override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()

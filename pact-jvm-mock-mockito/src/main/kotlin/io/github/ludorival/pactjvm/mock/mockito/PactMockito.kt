@@ -3,7 +3,6 @@ package io.github.ludorival.pactjvm.mock.mockito
 import io.github.ludorival.pactjvm.mock.Call as MockCall
 import io.github.ludorival.pactjvm.mock.CallInterceptor
 import io.github.ludorival.pactjvm.mock.InteractionBuilder
-import io.github.ludorival.pactjvm.mock.InteractionBuilderImpl
 import io.github.ludorival.pactjvm.mock.Pact
 import io.github.ludorival.pactjvm.mock.PactMockResponseError
 import io.github.ludorival.pactjvm.mock.MatchingRulesBuilder
@@ -21,22 +20,22 @@ import org.mockito.Mockito;
 
 class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing<T>) : OngoingStubbing<T> by ongoingStubbing {
 
-    private val interactionBuilder = InteractionBuilderImpl()
+    private val interactionBuilder = InteractionBuilder()
     fun withDescription(description: String): PactMockitoOngoingStubbing<T> {
         interactionBuilder.description(description)
         return this
     }
 
-    fun withProviderState(providerState: String, providerStateParameters: Map<String, Any>): PactMockitoOngoingStubbing<T> {
-        interactionBuilder.providerState(providerState, providerStateParameters)
+    fun given(block: InteractionBuilder.ProviderStateBuilder.() -> InteractionBuilder.ProviderStateBuilder): PactMockitoOngoingStubbing<T> {
+        interactionBuilder.providerState(block)
         return this
     }
 
-    fun withRequestMatchingRules(block: MatchingRulesBuilder.() -> Unit): PactMockitoOngoingStubbing<T> = apply {
+    fun matchingRequest(block: MatchingRulesBuilder.() -> MatchingRulesBuilder): PactMockitoOngoingStubbing<T> = apply {
         interactionBuilder.requestMatchingRules(block)
     }
 
-    fun withResponseMatchingRules(block: MatchingRulesBuilder.() -> Unit): PactMockitoOngoingStubbing<T> = apply {
+    fun matchingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder): PactMockitoOngoingStubbing<T> = apply {
         interactionBuilder.responseMatchingRules(block)
     }
 

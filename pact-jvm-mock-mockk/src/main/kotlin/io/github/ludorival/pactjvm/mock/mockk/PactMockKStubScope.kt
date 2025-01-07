@@ -2,33 +2,36 @@ package io.github.ludorival.pactjvm.mock.mockk
 
 import io.github.ludorival.pactjvm.mock.CallInterceptor
 import io.github.ludorival.pactjvm.mock.InteractionBuilder
-import io.github.ludorival.pactjvm.mock.InteractionBuilderImpl
 import io.github.ludorival.pactjvm.mock.Pact
 import io.github.ludorival.pactjvm.mock.MatchingRulesBuilder
 import io.github.ludorival.pactjvm.mock.Call as MockCall
 import io.mockk.*
 
-class PactMockStubScope<T, B>(
+class PactMockKStubScope<T, B>(
     private val mockKStubScope: MockKStubScope<T, B>
 ) {
 
-    private val interactionBuilder = InteractionBuilderImpl()
+    private val interactionBuilder = InteractionBuilder()
 
-    infix fun withDescription(description: String?): PactMockStubScope<T, B> = apply {
+    infix fun withDescription(description: () -> String) = apply {
+        interactionBuilder.description(description())
+    }
+
+    infix fun withDescription(description: String?) = apply {
         description?.let {
             interactionBuilder.description(it)
         }
     }
 
-    infix fun given(providerState: Pact.Interaction.ProviderState): PactMockStubScope<T, B> = apply {
-        interactionBuilder.providerState(providerState.name, providerState.params)
+    infix fun given(block: InteractionBuilder.ProviderStateBuilder.() -> InteractionBuilder.ProviderStateBuilder) = apply {
+        interactionBuilder.providerState(block)
     }
 
-    infix fun matchingRequest(block: MatchingRulesBuilder.() -> Unit):PactMockStubScope<T, B> = apply {
+    infix fun matchingRequest(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
         interactionBuilder.requestMatchingRules(block)
     }
 
-    infix fun macthingResponse(block: MatchingRulesBuilder.() -> Unit): PactMockStubScope<T, B> = apply {
+    infix fun macthingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
         interactionBuilder.responseMatchingRules(block)
     }
 
@@ -71,23 +74,21 @@ class PactMockStubScope<T, B>(
         private val mockKAdditionalAnswerScope: MockKAdditionalAnswerScope<T, B>,
     ) {
 
-        private val interactionBuilder = InteractionBuilderImpl()
+        private val interactionBuilder = InteractionBuilder()
 
-        infix fun withDescription(description: String?) = apply {
-            description?.let {
-                interactionBuilder.description(it)
-            }
+        infix fun withDescription(description: () -> String) = apply {
+            interactionBuilder.description(description())
         }
 
-        infix fun given(providerState: Pact.Interaction.ProviderState) = apply {
-            interactionBuilder.providerState(providerState.name, providerState.params)
+        infix fun given(block: InteractionBuilder.ProviderStateBuilder.() -> InteractionBuilder.ProviderStateBuilder) = apply {
+            interactionBuilder.providerState(block)
         }
 
-        infix fun matchingRequest(block: MatchingRulesBuilder.() -> Unit) = apply {
+        infix fun matchingRequest(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
             interactionBuilder.requestMatchingRules(block)
         }
 
-        infix fun macthingResponse(block: MatchingRulesBuilder.() -> Unit) = apply {
+        infix fun macthingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
             interactionBuilder.responseMatchingRules(block)
         }
 

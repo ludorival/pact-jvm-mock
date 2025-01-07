@@ -8,9 +8,9 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import java.time.LocalDate
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.objectMapperBuilder
 import io.github.ludorival.pactjvm.mock.serializerAsDefault
-import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockkAdapter
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
 
-object NonDeterministicPact : PactConfiguration("shopping-list", SpringRestTemplateMockkAdapter()) {
+object NonDeterministicPact : PactConfiguration("shopping-list", SpringRestTemplateMockAdapter()) {
 
     private val CUSTOM_OBJECT_MAPPER: ObjectMapper = objectMapperBuilder()
         .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)

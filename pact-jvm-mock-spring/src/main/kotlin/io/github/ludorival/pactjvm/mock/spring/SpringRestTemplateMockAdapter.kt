@@ -19,7 +19,7 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 
 @Suppress("TooManyFunctions")
-class SpringRestTemplateMockkAdapter :
+class SpringRestTemplateMockAdapter :
     PactMockAdapter() {
 
     private val uriTemplate by lazy {

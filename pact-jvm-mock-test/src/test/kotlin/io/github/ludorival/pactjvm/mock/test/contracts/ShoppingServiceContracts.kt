@@ -2,7 +2,6 @@ package io.github.ludorival.pactjvm.mock.test.contracts
 
 import io.github.ludorival.pactjvm.mock.Matcher
 import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
-import io.github.ludorival.pactjvm.mock.state
 import io.github.ludorival.pactjvm.mock.test.EMPTY_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.test.PREFERRED_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.test.SHOPPING_LIST_TO_DELETE
@@ -24,7 +23,7 @@ fun RestTemplate.willCreateShoppingList(description: String? = null) =
             )
         }
         .withDescription(description)
-        .given(state("the shopping list is empty", mapOf("userId" to USER_ID)))
+        .given { state("the shopping list is empty", mapOf("userId" to USER_ID)) }
         .macthingResponse { body("created_at", Matcher(Matcher.MatchEnum.TYPE)) } returns
         ResponseEntity.ok(EMPTY_SHOPPING_LIST)
 
@@ -38,7 +37,9 @@ fun RestTemplate.willReturnAnErrorWhenCreateShoppingList() =
             )
         }
         .withDescription("should return a 400 Bad request")
-        .given(state("The request should return a 400 Bad request")) throws anError(
+        .given { 
+            state("The request should return a 400 Bad request") 
+        } throws anError(
         ResponseEntity.badRequest().body("The title contains unexpected character"))
 
 fun RestTemplate.willGetShoppingList() =
@@ -87,14 +88,12 @@ fun RestTemplate.willDeleteShoppingItem() =
                     match<URI> { it.path.contains("shopping-service") },
             )
         }
-        .withDescription("delete shopping item")
-        .macthingResponse {} returns
+        .withDescription("delete shopping item")returns
         Unit
 
 fun RestTemplate.willUpdateShoppingList() =
         uponReceiving {
             put(match<URI> { it.path.contains("shopping-service") }, any())
         }
-        .withDescription("update shopping list")
-        .macthingResponse {} returns
+        .withDescription("update shopping list") returns
         Unit

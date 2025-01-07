@@ -45,9 +45,11 @@ class MockkCoverageTest {
         given {
             uponReceiving {
                 restTemplate.getForEntity(any<String>(), eq(String::class.java))
-            }.withDescription("Get user profile")
-             .given(state("user exists", mapOf("userId" to "123")))
-             .returns(ResponseEntity.ok("User Profile"))
+            } withDescription { 
+                "Get user profile" 
+            } given { 
+                state("user exists", mapOf("userId" to "123"))
+            } returns ResponseEntity.ok("User Profile")
         } `when` {
             restTemplate.getForEntity("$TEST_API_1_URL/users/123", String::class.java)
         } then {
@@ -148,13 +150,13 @@ class MockkCoverageTest {
         given {
             uponReceiving {
                 restTemplate.getForEntity(any<String>(), eq(String::class.java))
-            }.withDescription("Initial successful response")
+            }.withDescription { "Initial successful response" }
              .returns(ResponseEntity.ok("Initial response"))
-             .withDescription("Second successful response")
+             .withDescription { "Second successful response" }
              .andThen(ResponseEntity.ok("Second response"))
-             .withDescription("Error response")
+             .withDescription { "Error response" }
              .andThenThrows(anError(ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request")))
-             .withDescription("Not found response")
+             .withDescription { "Not found response" }
              .andThen(ResponseEntity.status(HttpStatus.NOT_FOUND).build())
         } `when` {
             val responses = mutableListOf<ResponseEntity<String>>()

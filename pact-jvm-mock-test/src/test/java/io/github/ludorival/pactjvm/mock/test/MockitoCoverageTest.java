@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import static io.github.ludorival.pactjvm.mock.UtilsKt.anError;
-import static io.github.ludorival.pactjvm.mock.UtilsKt.state;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,11 +51,11 @@ public class MockitoCoverageTest {
     }
 
     @Test
-    void shouldInterceptWithProviderStateAndDescription() {
+    void shouldInterceptgivenAndDescription() {
         // given
         PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(String.class)))
                 .withDescription("Get user profile")
-                .withProviderState("user exists", Map.of("userId", "123"))
+                .given((builder) -> builder.state("user exists", Map.of("userId", "123")))
                 .thenReturn(ResponseEntity.ok("User Profile"));
 
         // when
@@ -74,21 +73,15 @@ public class MockitoCoverageTest {
     }
 
     @Test
-    void shouldInterceptWithMatchingRules() {
+    void shouldInterceptmatching() {
         // given
         PactMockito.uponReceiving(restTemplate.postForEntity(
                 any(String.class),
                 any(HttpEntity.class),
                 eq(String.class)
         ))
-        .withRequestMatchingRules(builder -> {            
-            builder.header("Content-Type", new Matcher(Matcher.MatchEnum.REGEX, "application/json.*", null, null, null, null));
-            return null;
-        })
-        .withResponseMatchingRules(builder -> {            
-            builder.body("id", new Matcher(Matcher.MatchEnum.TYPE, null, null, null, null, null));
-            return null;
-        })
+        .matchingRequest(builder -> builder.header("Content-Type", new Matcher(Matcher.MatchEnum.REGEX, "application/json.*", null, null, null, null)))
+        .matchingResponse(builder -> builder.body("id", new Matcher(Matcher.MatchEnum.TYPE, null, null, null, null, null)))
         .thenReturn(ResponseEntity.ok("{\"id\": \"123\"}"));
 
         // when
