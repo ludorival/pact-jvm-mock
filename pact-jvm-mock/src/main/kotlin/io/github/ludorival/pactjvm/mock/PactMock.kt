@@ -23,6 +23,7 @@ internal object PactMock : CallInterceptor {
     }
 
     fun clearPact(providerName: String) {
+        LOGGER.debug("Clearing pact for provider: {}", providerName)
         pacts.remove(getId(providerName))
     }
 
@@ -31,11 +32,13 @@ internal object PactMock : CallInterceptor {
     private fun getId(providerName: String) = "${pactConfiguration.consumer}-$providerName-${pactConfiguration.isDeterministic()}"
 
     private fun getPact(providerName: String) = pacts.getOrPut(getId(providerName)) {
+        LOGGER.debug("Creating new pact for provider: {}", providerName)
         PactToWrite(providerName, pactConfiguration)
     }
 
     private fun addInteraction(interaction: Pact.Interaction) {
         val providerName = pactConfiguration.determineProviderFromInteraction(interaction)
+        LOGGER.debug("Adding interaction for provider: {}, description: {}", providerName, interaction.description)
         val pactToWrite = getPact(providerName)
         pacts[getId(providerName)] = pactToWrite.addInteraction(
             serializeRequestAndResponse(
@@ -47,14 +50,18 @@ internal object PactMock : CallInterceptor {
 
     override fun <T> interceptAndGet(call: Call, response: Result<T>, interactionBuilder: InteractionBuilder): T {
         if (currentTestName == null) {
+            LOGGER.debug("No test name set, skipping pact recording")
             return response.getOrThrow()
         }
-        val adapter = pactConfiguration.getAdapterFor(call)
-        return if (adapter != null) {
-            val interaction = adapter.buildInteraction(call, response, interactionBuilder)
-            addInteraction(interaction)
-            adapter.returnsResult(response)
-        } else response.getOrThrow()
+        val adapter = pactConfiguration.getAdapterFor(call) ?: run {
+            LOGGER.debug("No adapter found for call, skipping pact recording")
+            return response.getOrThrow()
+        }
+        runCatching { adapter.buildInteraction(call, response, interactionBuilder) }
+            .onFailure { LOGGER.warn("Failed to build interaction: {}", it.message) }
+            .getOrNull()
+            ?.let { addInteraction(it) }
+        return adapter.returnsResult(response)
     }
 
     private fun serializeRequestAndResponse(

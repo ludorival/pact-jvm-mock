@@ -53,6 +53,7 @@ internal data class PactToWrite(
     fun addInteraction(interaction: Pact.Interaction): PactToWrite {
         val existing = interactionsByDescription[interaction.description]
         val hasChanged = existing != null && interaction != existing
+        val countInteractions = if (hasChanged && !isDeterministic) interactionsByDescription.keys.count { it.startsWith(interaction.description) } else 0  
         return when {
             hasChanged && isDeterministic -> {
                 throw IllegalStateException(printDifferences(existing!!, interaction))
@@ -61,14 +62,14 @@ internal data class PactToWrite(
                     addInteraction(
                                     interaction.copy(
                                             description =
-                                                    "${interaction.description} - ${interactionsByDescription.keys.count { it.startsWith(interaction.description) }}"
+                                                    "${interaction.description} - ${countInteractions}"
                                     )
                             )
                             .also {
-                                println(printDifferences(existing!!, interaction))
-                                println(
+                                LOGGER.warn(printDifferences(existing!!, interaction))
+                                LOGGER.warn(
                                         "New description title has been generated : " +
-                                                "$RED${interaction.description} - ${interaction.hashCode()}$RESET"
+                                                "$RED${interaction.description} - ${countInteractions}$RESET"
                                 )
                             }
             existing != null -> this
@@ -129,7 +130,7 @@ internal data class PactToWrite(
         return sb.toString()
     }
 
-    private val pactFile
+    internal val pactFile
         get() = "${consumer}-${providerMetaData.name}.json"
     internal fun write() {
         if (descriptions.isEmpty()) return
@@ -145,7 +146,7 @@ internal data class PactToWrite(
                             descriptions.map { interactionsByDescription.getValue(it) }
                     )
             writeText(pact.toPrettyJson())
-            println("[$id] Successfully written pact to ${this.path}")
+            LOGGER.info("[$id] Successfully written pact to {}", this.path)
         }
     }
 

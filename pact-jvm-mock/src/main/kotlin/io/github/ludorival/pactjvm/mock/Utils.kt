@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializerProvider
+import org.slf4j.LoggerFactory
 
  fun <T> serializerWith( supplier: (JsonGenerator) -> Unit) = object : JsonSerializer<T>() {
     override fun serialize(value: T, gen: JsonGenerator, serializers: SerializerProvider?) {
@@ -28,3 +29,5 @@ fun clearPact(providerName: String) {
 }
 
 typealias InteractionHandler<R> = (Pact.Interaction) -> R
+
+internal val LOGGER = LoggerFactory.getLogger(PactMock::class.java)
