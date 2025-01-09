@@ -268,6 +268,23 @@ class MockkCoverageTest {
         }
     }
 
+    @Test
+    fun `should not fail test when exception is not supported by adapter`() {
+        class UnsupportedCustomException(message: String) : RuntimeException(message)
+
+        given {
+            uponReceiving {
+                restTemplate.getForEntity(any<String>(), eq(String::class.java))
+            }.throws(UnsupportedCustomException("Custom error"))
+        } `when` {
+            assertThrows<UnsupportedCustomException> {
+                restTemplate.getForEntity("$TEST_API_1_URL/unsupported-error", String::class.java)
+            }
+        } then {
+            assertNull(getCurrentPact(API_1))
+        }
+    }
+
     companion object {
         val API_1 = "service1"
         val TEST_API_1_URL = "http://localhost:8080/$API_1/api/v1"

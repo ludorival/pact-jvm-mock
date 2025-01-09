@@ -168,6 +168,7 @@ project(":pact-jvm-mock") {
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
         implementation(kotlin("stdlib-jdk8"))
+        implementation("org.slf4j:slf4j-api:2.0.16")
     }
 }
 project(":pact-jvm-mock-mockk") {
