@@ -83,7 +83,7 @@ public class MockitoAdapterTest {
                 eq(UserProfile.class),
                 any(Long.class)))
             .withDescription("Get user profile")
-            .given((builder) -> builder.state("The user has a preferred shopping list", Map.of("userId", USER_PROFILE.getId())))
+            .given((builder, interaction) -> builder.state("The user has a preferred shopping list", Map.of("userId", USER_PROFILE.getId())))
             .thenReturn(ResponseEntity.ok(USER_PROFILE));
 
         UserProfile response = userServiceClient.getUserProfile(USER_PROFILE.getId());
@@ -98,7 +98,7 @@ public class MockitoAdapterTest {
                 any(Map.class),
                 eq(ShoppingList.class)))
             .withDescription("should return a 400 Bad request")
-            .given((builder) -> builder.state("The request should return a 400 Bad request", Collections.emptyMap()))
+            .given((builder, interaction) -> builder.state("The request should return a 400 Bad request", Collections.emptyMap()))
             .thenThrow(HttpClientErrorException.BadRequest.create(
                     HttpStatus.BAD_REQUEST,
                     errorMessage,

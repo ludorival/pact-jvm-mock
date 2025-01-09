@@ -26,3 +26,5 @@ fun getCurrentPact(providerName: String): Pact? {
 fun clearPact(providerName: String) {
     PactMock.clearPact(providerName)
 }
+
+typealias InteractionHandler<R> = (Pact.Interaction) -> R

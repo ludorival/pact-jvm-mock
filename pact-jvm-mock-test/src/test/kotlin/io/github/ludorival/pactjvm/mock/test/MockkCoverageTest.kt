@@ -1,5 +1,7 @@
 package io.github.ludorival.pactjvm.mock.test
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.http.*
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
+import java.nio.charset.Charset
 
 @PactConsumer(NonDeterministicPact::class)
 class MockkCoverageTest {
@@ -146,6 +149,26 @@ class MockkCoverageTest {
     }
 
     @Test
+    fun `should handle Spring Error Exceptions responses`() {
+        given {
+            uponReceiving {
+                restTemplate.getForEntity(any<String>(), eq(String::class.java))
+            }.throws(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "Bad Request", HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON}, """{"error":"VALIDATION_FAILURE", "error_description": "The format is not supported"}""".toByteArray(),Charset.defaultCharset()))
+        } `when` {
+            assertThrows<HttpClientErrorException> {
+                restTemplate.getForEntity("$TEST_API_1_URL/error", String::class.java)
+            }
+        } then {
+            with(getCurrentPact(API_1)!!) {
+                assertEquals(1, interactions.size)
+                assertEquals(400, interactions[0].response.status)
+                assertTrue(interactions[0].response.body is JsonNode)
+                assertEquals("""{"error":"VALIDATION_FAILURE","error_description":"The format is not supported"}""", interactions[0].response.body.toString())
+            }
+        }
+    }
+
+    @Test
     fun `should handle chained responses with andThen`() {
         given {
             uponReceiving {
@@ -190,6 +213,56 @@ class MockkCoverageTest {
                     assertEquals("Not found response", description)
                     assertEquals(404, response.status)
                     assertNull(response.body)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `should use interaction content to set description and provider state`() {
+        given {
+            uponReceiving {
+                restTemplate.postForEntity(
+                    any<String>(),
+                    any<HttpEntity<Map<String, String>>>(),
+                    eq(String::class.java)
+                )
+            }.withDescription { interaction ->
+                "POST request to ${interaction.request.path} with ${(interaction.request.body<Map<*, *>>())?.size ?: 0} parameters"
+            }.given { interaction ->
+                state(
+                    "request contains required fields",
+                    mapOf(
+                        "description" to interaction.description,
+                        "method" to interaction.request.method,
+                        "path" to interaction.request.path,
+                        "contentType" to interaction.request.headers?.get("Content-Type")
+                    )
+                )
+            }.returns(ResponseEntity.ok("Success"))
+        } `when` {
+            val headers = HttpHeaders()
+            headers.contentType = MediaType.APPLICATION_JSON
+            val request = HttpEntity(
+                mapOf(
+                    "name" to "John",
+                    "email" to "john@example.com"
+                ),
+                headers
+            )
+            restTemplate.postForEntity("$TEST_API_1_URL/users", request, String::class.java)
+        } then {
+            with(getCurrentPact(API_1)!!) {
+                assertEquals(1, interactions.size)
+                with(interactions.first()) {
+                    assertEquals("POST request to /service1/api/v1/users with 2 parameters", description)
+                    assertEquals("request contains required fields", providerStates?.first()?.name)
+                    with(providerStates?.first()?.params!!) {
+                        assertEquals("POST request to /service1/api/v1/users with 2 parameters", get("description"))
+                        assertEquals("POST", get("method")?.toString())
+                        assertEquals("/service1/api/v1/users", get("path"))
+                        assertEquals("application/json", get("contentType"))
+                    }
                 }
             }
         }

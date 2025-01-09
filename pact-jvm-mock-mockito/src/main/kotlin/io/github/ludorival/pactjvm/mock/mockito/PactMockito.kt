@@ -1,11 +1,7 @@
 package io.github.ludorival.pactjvm.mock.mockito
 
+import io.github.ludorival.pactjvm.mock.*
 import io.github.ludorival.pactjvm.mock.Call as MockCall
-import io.github.ludorival.pactjvm.mock.CallInterceptor
-import io.github.ludorival.pactjvm.mock.InteractionBuilder
-import io.github.ludorival.pactjvm.mock.Pact
-import io.github.ludorival.pactjvm.mock.PactMockResponseError
-import io.github.ludorival.pactjvm.mock.MatchingRulesBuilder
 import org.mockito.internal.exceptions.Reporter.notAnException
 import org.mockito.internal.progress.ThreadSafeMockingProgress.mockingProgress
 import org.mockito.internal.stubbing.BaseStubbing
@@ -22,11 +18,15 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
 
     private val interactionBuilder = InteractionBuilder()
     fun withDescription(description: String): PactMockitoOngoingStubbing<T> {
-        interactionBuilder.description(description)
+        interactionBuilder.description { description }
         return this
     }
 
-    fun given(block: InteractionBuilder.ProviderStateBuilder.() -> InteractionBuilder.ProviderStateBuilder): PactMockitoOngoingStubbing<T> {
+    infix fun withDescription(description: InteractionHandler<String>) = apply {
+        interactionBuilder.description(description)
+    }
+
+    fun given(block: InteractionBuilder.ProviderStateBuilder.(Pact.Interaction) -> InteractionBuilder.ProviderStateBuilder): PactMockitoOngoingStubbing<T> {
         interactionBuilder.providerState(block)
         return this
     }

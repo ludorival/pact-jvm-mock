@@ -1,5 +1,6 @@
 package io.github.ludorival.pactjvm.mock
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Pact(
@@ -36,6 +37,9 @@ data class Pact(
             val body: Any? = null,
             val matchingRules: MatchingRules? = null
         ) {
+
+            @JsonIgnore
+            inline fun <reified T> body() : T? = if (body is T) body else null
             enum class Method {
                 GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE
             }

@@ -54,8 +54,8 @@ public class MockitoCoverageTest {
     void shouldInterceptgivenAndDescription() {
         // given
         PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(String.class)))
-                .withDescription("Get user profile")
-                .given((builder) -> builder.state("user exists", Map.of("userId", "123")))
+                .withDescription((interaction) -> "Get user profile")
+                .given((builder, interaction) -> builder.state("user exists", Map.of("userId", "123")))
                 .thenReturn(ResponseEntity.ok("User Profile"));
 
         // when

@@ -17,11 +17,16 @@ import org.springframework.web.util.DefaultUriBuilderFactory
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode
 import java.net.URI
 import java.nio.charset.StandardCharsets
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.ObjectMapper
 
 @Suppress("TooManyFunctions")
 class SpringRestTemplateMockAdapter :
     PactMockAdapter() {
 
+    private val objectMapper = ObjectMapper().apply {
+        setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    }
     private val uriTemplate by lazy {
         val uriFactory = DefaultUriBuilderFactory()
         uriFactory.encodingMode = EncodingMode.URI_COMPONENT // for backwards compatibility..
@@ -97,12 +102,15 @@ class SpringRestTemplateMockAdapter :
                 is PactMockResponseError   -> exception.response as? ResponseEntity<Any> ?: error("Expect to provide a ResponseEntity")
                 is HttpStatusCodeException -> ResponseEntity.status(exception.statusCode)
                     .headers(exception.responseHeaders)
-                    .body(exception.responseBodyAsString.ifEmpty { exception.statusText })
+                    .body(exception.responseBodyAsString.run {asJson() ?: ifEmpty { exception.statusText }})
 
                 else                       -> error("Not supported exception as Client exception")
             }
         }
     }
+
+    private fun String.asJson(): Any? = runCatching {objectMapper.readValue(this, Any::class.java) }.getOrNull()
+
     @Suppress("UNCHECKED_CAST")
     override fun <T> returnsResult(result: Result<T>): T {
         val exception = result.exceptionOrNull()

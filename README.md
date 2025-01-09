@@ -137,7 +137,7 @@ uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)
 // With error response
 uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class)))
     .withDescription("Create user profile - validation error")
-    .given(builder -> builder.state("Invalid user data", Collections.emptyMap()))
+    .given((builder, interaction) -> builder.state("Invalid user data", Collections.emptyMap()))
     .thenThrow(HttpClientErrorException.BadRequest.create(
                     HttpStatus.BAD_REQUEST,
                     errorMessage,
@@ -157,7 +157,7 @@ uponReceiving(restTemplate.exchange(
         any(ParameterizedTypeReference.class)
     ))
     .withDescription("List users")
-    .given("Users exist", Collections.emptyMap())
+    .given((builder, interaction) -> builder.state("Users exist", Collections.emptyMap()))
     .matchingRequest(rules -> rules.header("Authorization", new Matcher(Matcher.MatchEnum.REGEX, "Bearer .*")))
     .matchingResponse(rules -> rules.body("[*].id", new Matcher(Matcher.MatchEnum.TYPE)))
     .thenReturn(ResponseEntity.ok(Arrays.asList(USER_1, USER_2)));

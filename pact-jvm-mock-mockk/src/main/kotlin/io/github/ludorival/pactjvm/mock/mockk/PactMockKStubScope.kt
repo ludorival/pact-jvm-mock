@@ -1,9 +1,6 @@
 package io.github.ludorival.pactjvm.mock.mockk
 
-import io.github.ludorival.pactjvm.mock.CallInterceptor
-import io.github.ludorival.pactjvm.mock.InteractionBuilder
-import io.github.ludorival.pactjvm.mock.Pact
-import io.github.ludorival.pactjvm.mock.MatchingRulesBuilder
+import io.github.ludorival.pactjvm.mock.*
 import io.github.ludorival.pactjvm.mock.Call as MockCall
 import io.mockk.*
 
@@ -13,17 +10,17 @@ class PactMockKStubScope<T, B>(
 
     private val interactionBuilder = InteractionBuilder()
 
-    infix fun withDescription(description: () -> String) = apply {
-        interactionBuilder.description(description())
+    infix fun withDescription(description: InteractionHandler<String>) = apply {
+        interactionBuilder.description(description)
     }
 
     infix fun withDescription(description: String?) = apply {
-        description?.let {
-            interactionBuilder.description(it)
+        description?.let { value ->
+            interactionBuilder.description { value }
         }
     }
 
-    infix fun given(block: InteractionBuilder.ProviderStateBuilder.() -> InteractionBuilder.ProviderStateBuilder) = apply {
+    infix fun given(block: InteractionBuilder.ProviderStateBuilder.(Pact.Interaction) -> InteractionBuilder.ProviderStateBuilder) = apply {
         interactionBuilder.providerState(block)
     }
 
@@ -76,11 +73,11 @@ class PactMockKStubScope<T, B>(
 
         private val interactionBuilder = InteractionBuilder()
 
-        infix fun withDescription(description: () -> String) = apply {
-            interactionBuilder.description(description())
+        infix fun withDescription(description: InteractionHandler<String>) = apply {
+            interactionBuilder.description(description)
         }
 
-        infix fun given(block: InteractionBuilder.ProviderStateBuilder.() -> InteractionBuilder.ProviderStateBuilder) = apply {
+        infix fun given(block: InteractionBuilder.ProviderStateBuilder.(Pact.Interaction) -> InteractionBuilder.ProviderStateBuilder) = apply {
             interactionBuilder.providerState(block)
         }
 
