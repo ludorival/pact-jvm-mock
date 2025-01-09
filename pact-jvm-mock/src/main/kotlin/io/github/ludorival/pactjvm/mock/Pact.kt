@@ -39,7 +39,8 @@ data class Pact(
         ) {
 
             @JsonIgnore
-            inline fun <reified T> body() : T? = if (body is T) body else null
+            @Suppress("UNCHECKED_CAST")
+            fun <T> body() : T? = body as? T
             enum class Method {
                 GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE
             }
