@@ -198,7 +198,7 @@ project(":pact-jvm-mock-test") {
     dependencies {
         implementation(kotlin("stdlib-jdk8"))
         implementation("org.springframework.boot:spring-boot-starter-web:3.0.2")
-        implementation("org.springframework:spring-web:6.0.4")
+        implementation("org.springframework:spring-web:6.2.1")
         
         testImplementation("io.mockk:mockk:1.13.16")
         testImplementation(project(":pact-jvm-mock-spring"))
