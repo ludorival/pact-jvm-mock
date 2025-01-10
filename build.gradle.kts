@@ -174,7 +174,7 @@ project(":pact-jvm-mock") {
 project(":pact-jvm-mock-mockk") {
     dependencies {
         api(project(":pact-jvm-mock"))
-        compileOnly("io.mockk:mockk:1.13.14")
+        compileOnly("io.mockk:mockk:1.13.16")
     }
 }
 
@@ -200,7 +200,7 @@ project(":pact-jvm-mock-test") {
         implementation("org.springframework.boot:spring-boot-starter-web:3.0.2")
         implementation("org.springframework:spring-web:6.0.4")
         
-        testImplementation("io.mockk:mockk:1.13.14")
+        testImplementation("io.mockk:mockk:1.13.16")
         testImplementation(project(":pact-jvm-mock-spring"))
         testImplementation(project(":pact-jvm-mock-mockk"))
         testImplementation(project(":pact-jvm-mock-mockito"))
