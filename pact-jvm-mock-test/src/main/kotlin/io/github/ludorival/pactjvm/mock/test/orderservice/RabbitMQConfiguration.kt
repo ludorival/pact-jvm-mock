@@ -14,23 +14,23 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.config.RabbitMQConfig
 
 @Configuration
-class RabbitMQConfiguration {
+open class RabbitMQConfiguration {
 
     @Bean
-    fun queue(): Queue = Queue(RabbitMQConfig.ROUTING_KEY)
+    open fun queue(): Queue = Queue(RabbitMQConfig.ROUTING_KEY)
 
     @Bean
-    fun exchange(): TopicExchange = TopicExchange(RabbitMQConfig.EXCHANGE_NAME)
+    open fun exchange(): TopicExchange = TopicExchange(RabbitMQConfig.EXCHANGE_NAME)
 
     @Bean
-    fun binding(queue: Queue, exchange: TopicExchange): Binding =
+    open fun binding(queue: Queue, exchange: TopicExchange): Binding =
         BindingBuilder.bind(queue).to(exchange).with(RabbitMQConfig.ROUTING_KEY)
 
     @Bean
-    fun messageConverter(): MessageConverter = Jackson2JsonMessageConverter()
+    open fun messageConverter(): MessageConverter = Jackson2JsonMessageConverter()
 
     @Bean
-    fun rabbitTemplate(connectionFactory: ConnectionFactory, messageConverter: MessageConverter): RabbitTemplate =
+    open fun rabbitTemplate(connectionFactory: ConnectionFactory, messageConverter: MessageConverter): RabbitTemplate =
         RabbitTemplate(connectionFactory).apply {
             this.messageConverter = messageConverter
         }
