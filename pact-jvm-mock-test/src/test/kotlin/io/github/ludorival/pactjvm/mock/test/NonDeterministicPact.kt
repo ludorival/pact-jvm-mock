@@ -13,10 +13,5 @@ import io.github.ludorival.pactjvm.mock.spring.serializerAsDefault
 import io.github.ludorival.pactjvm.mock.Call
 
 object NonDeterministicPact : PactConfiguration(
-    SpringRestTemplateMockAdapter("shopping-list", ObjectMapperConfig::by),
-    object : SpringRabbitMQMockAdapter("order-service", objectMapperBuilder().build()) {
-        override fun determineConsumerAndProvider(call: Call<*>): Pair<String, String> {
-            return "order-service" to "shopping-list"
-        }
-    }
+    SpringRestTemplateMockAdapter("shopping-list", ObjectMapperConfig::by)
 )

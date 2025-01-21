@@ -7,7 +7,7 @@ import io.github.ludorival.pactjvm.mock.PactConsumer
 import io.github.ludorival.pactjvm.mock.clearPact
 import io.github.ludorival.pactjvm.mock.getCurrentPact
 import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
-import io.github.ludorival.pactjvm.mock.test.NonDeterministicPact
+import io.github.ludorival.pactjvm.mock.test.RabbitMQPactV4Config
 import io.github.ludorival.pactjvm.mock.test.orderservice.OrderMessage
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingList
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.config.RabbitMQConfig
@@ -23,7 +23,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate
 import java.time.LocalDate
 import au.com.dius.pact.core.model.messaging.MessagePact
 
-@PactConsumer(NonDeterministicPact::class)
+@PactConsumer(RabbitMQPactV4Config::class)
 class RabbitMQPactTest {
 
     private val rabbitTemplate = mockk<RabbitTemplate>()
