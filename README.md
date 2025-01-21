@@ -17,7 +17,7 @@ and reducing the risk of human error.
 
 - Automatically generate Pact contracts from existing [Mockk](https://github.com/mockk/mockk) mocks or [Mockito](https://github.com/mockito/mockito) mocks
 - Supports all common mock interactions, such as method calls and property accesses
-- Compatible with Spring Rest Template client and fully extensible
+- Compatible with Spring Rest Template client and Spring RabbitMQ messaging
 - Easy to integrate with your existing testing workflow
 
 ## Getting Started in 5 minutes
@@ -37,7 +37,7 @@ Or if you are using Maven:
 
 **Maven**
 
-````xml
+```xml
 <!-- For intercepting Mockk calls -->
 <dependency>
     <groupId>io.github.ludorival</groupId>
@@ -61,7 +61,7 @@ Or if you are using Maven:
     <version>${pactJvmMockVersion}</version>
     <scope>test</scope>
 </dependency>
-````
+```
 
 ### Configure the pacts
 
@@ -75,6 +75,18 @@ import io.github.ludorival.pactjvm.mock.PactConfiguration
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
 
 object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter())
+```
+
+For RabbitMQ messaging, you can use the `SpringRabbitMQMockAdapter`:
+
+```kotlin
+import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.SpringRabbitMQMockAdapter
+import com.fasterxml.jackson.databind.ObjectMapper
+
+object MyServicePactConfig : PactConfiguration(
+    SpringRabbitMQMockAdapter("my-service", customObjectMapper) // ObjectMapper is optional
+)
 ```
 
 ### Extend your tests files
@@ -107,6 +119,22 @@ every {
 uponReceiving {
     restTemplate.getForEntity(match<String> { it.contains("user-service") }, UserProfile::class.java)
 } returns ResponseEntity.ok(USER_PROFILE)
+
+// For RabbitMQ messaging:
+uponReceiving {
+    rabbitTemplate.convertAndSend(
+        any<String>(), // exchange
+        any<String>(), // routing key
+        any<OrderMessage>() // message
+    )
+}.withDescription {
+    "Order message sent"
+}.given {
+    state("order created", mapOf(
+        "exchange" to "orders",
+        "routing_key" to "order.created"
+    ))
+}.returns(Unit)
 ```
 
 All your existing Mockk matchers and features continue to work exactly the same way. The library supports:

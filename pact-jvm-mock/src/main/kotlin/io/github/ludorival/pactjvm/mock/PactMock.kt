@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 internal object PactMock : CallInterceptor {
 
-    private var pactConfiguration: PactConfiguration = object : PactConfiguration("") {}
+    private var pactConfiguration: PactConfiguration = object : PactConfiguration() {}
 
     internal fun setPactConfiguration(config: PactConfiguration) {
         this.pactConfiguration = config
@@ -21,24 +21,25 @@ internal object PactMock : CallInterceptor {
         }
     }
 
-    fun clearPact(providerName: String) {
+    fun clearPact(consumerName: String, providerName: String) {
         LOGGER.debug { "Clearing pact for provider: $providerName" }
-        pacts.remove(getId(providerName))
+        pacts.remove(getId(consumerName, providerName))
     }
 
-    fun getCurrentPact(providerName: String) = pacts[getId(providerName)]?.pact
+    fun getCurrentPact(consumerName: String, providerName: String) = pacts[getId(consumerName, providerName)]?.pact
 
-    private fun getId(providerName: String) = "${pactConfiguration.consumer}-$providerName-${pactConfiguration.isDeterministic()}"
 
-    private fun getPact(providerName: String) = pacts.getOrPut(getId(providerName)) {
-        LOGGER.debug { "Creating new pact for provider: $providerName" }
-        PactToWrite(providerName, pactConfiguration)
+    private fun getId(consumerName: String, providerName: String) = "${consumerName}-$providerName-${pactConfiguration.isDeterministic()}"
+
+    private fun getPact(consumerName: String, providerName: String) = pacts.getOrPut(getId(consumerName, providerName)) {
+        LOGGER.debug { "Creating new pact for consumer: $consumerName, provider: $providerName" }
+        PactToWrite(consumerName, providerName, pactConfiguration)
     }
 
-    private fun <I: Interaction> addInteraction(interaction: I, providerName: String) {
+    private fun <I: Interaction> addInteraction(interaction: I, consumerName: String, providerName: String) {
         LOGGER.debug { "Adding interaction for provider: $providerName, description: ${interaction.description}" }
-        val pactToWrite = getPact(providerName)
-        pacts[getId(providerName)] = pactToWrite.addInteraction(
+        val pactToWrite = getPact(consumerName, providerName)
+        pacts[getId(consumerName, providerName)] = pactToWrite.addInteraction(
             interaction
         )
     }
@@ -53,11 +54,11 @@ internal object PactMock : CallInterceptor {
             LOGGER.debug { "No adapter found for call, skipping pact recording" }
             return call.result.getOrThrow()
         }
-        val providerName = adapter.determineProvider(call)
+        val (consumerName, providerName) = adapter.determineConsumerAndProvider(call)
         runCatching { adapter.buildInteraction(interactionBuilder, providerName) }
             .onFailure { LOGGER.warn { "Failed to build interaction: ${it.message}" } }
             .getOrNull()
-            ?.let { addInteraction(it, providerName) }
+            ?.let { addInteraction(it, consumerName, providerName) }
         return adapter.returnsResult(call.result)
     }
 

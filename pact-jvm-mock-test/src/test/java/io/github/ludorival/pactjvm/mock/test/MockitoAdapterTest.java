@@ -37,7 +37,7 @@ public class MockitoAdapterTest {
 
     public static class TestPactConfig extends PactConfiguration {
         public TestPactConfig() {
-            super("mockito-test-consumer", new SpringRestTemplateMockAdapter());
+            super(new SpringRestTemplateMockAdapter("mockito-test-consumer"));
         }
 
     }

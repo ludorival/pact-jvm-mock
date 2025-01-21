@@ -191,6 +191,7 @@ project(":pact-jvm-mock-spring") {
         api(project(":pact-jvm-mock"))
         implementation(kotlin("stdlib-jdk8"))
         compileOnly("org.springframework:spring-web:6.2.1")
+        compileOnly("org.springframework.amqp:spring-rabbit:3.2.1")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     }
 }
@@ -200,6 +201,7 @@ project(":pact-jvm-mock-test") {
         implementation(kotlin("stdlib-jdk8"))
         implementation("org.springframework.boot:spring-boot-starter-web:3.0.2")
         implementation("org.springframework:spring-web:6.0.4")
+        implementation("org.springframework.boot:spring-boot-starter-amqp:3.0.2")
         
         testImplementation("io.mockk:mockk:1.13.16")
         testImplementation(project(":pact-jvm-mock-spring"))

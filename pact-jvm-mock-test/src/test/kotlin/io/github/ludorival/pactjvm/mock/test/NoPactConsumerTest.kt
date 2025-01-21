@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.*
 import org.springframework.web.client.RestTemplate
+import au.com.dius.pact.core.model.RequestResponsePact
 
 class NoPactConsumerTest {
 
@@ -18,7 +19,7 @@ class NoPactConsumerTest {
 
     @BeforeEach
     fun setUp() {
-        clearPact(API_1)
+        clearPact("shopping-list", API_1)
     }
 
     @Test
@@ -31,7 +32,7 @@ class NoPactConsumerTest {
             restTemplate.getForEntity(TEST_API_1_URL, String::class.java)
         } then {
             // Verify no interactions were recorded since @PactConsumer is missing
-            val pact = getCurrentPact(API_1)
+            val pact = getCurrentPact<RequestResponsePact>("shopping-list", API_1)
             assertTrue(pact == null || pact.interactions.isEmpty(), "Expected no interactions to be recorded")
         }
     }
