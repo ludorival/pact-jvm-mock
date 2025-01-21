@@ -1,5 +1,10 @@
 package io.github.ludorival.pactjvm.mock.test;
 
+import au.com.dius.pact.core.model.Interaction;
+import au.com.dius.pact.core.model.Pact;
+import au.com.dius.pact.core.model.RequestResponseInteraction;
+import au.com.dius.pact.core.model.matchingrules.RegexMatcher;
+import au.com.dius.pact.core.model.matchingrules.TypeMatcher;
 import io.github.ludorival.pactjvm.mock.*;
 import io.github.ludorival.pactjvm.mock.mockito.PactMockito;
 import org.junit.jupiter.api.Assertions;
@@ -55,7 +60,7 @@ public class MockitoCoverageTest {
         // given
         PactMockito.uponReceiving(restTemplate.getForEntity(any(String.class), eq(String.class)))
                 .withDescription((interaction) -> "Get user profile")
-                .given((builder, interaction) -> builder.state("user exists", Map.of("userId", "123")))
+                .given((builder) -> builder.state("user exists", Map.of("userId", "123")))
                 .thenReturn(ResponseEntity.ok("User Profile"));
 
         // when
@@ -65,7 +70,7 @@ public class MockitoCoverageTest {
         Pact pact = UtilsKt.getCurrentPact(API_1);
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
-        Pact.Interaction interaction = pact.getInteractions().get(0);
+        RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
         assertEquals("Get user profile", interaction.getDescription());
         assertNotNull(interaction.getProviderStates());
         assertEquals("user exists", interaction.getProviderStates().get(0).getName());
@@ -80,8 +85,8 @@ public class MockitoCoverageTest {
                 any(HttpEntity.class),
                 eq(String.class)
         ))
-        .matchingRequest(builder -> builder.header("Content-Type", new Matcher(Matcher.MatchEnum.REGEX, "application/json.*", null, null, null, null)))
-        .matchingResponse(builder -> builder.body("id", new Matcher(Matcher.MatchEnum.TYPE, null, null, null, null, null)))
+        .matchingRequest(builder -> builder.header("Content-Type", new RegexMatcher("application/json.*")))
+        .matchingResponse(builder -> builder.body("id", TypeMatcher.INSTANCE))
         .thenReturn(ResponseEntity.ok("{\"id\": \"123\"}"));
 
         // when
@@ -97,7 +102,7 @@ public class MockitoCoverageTest {
         Pact pact = UtilsKt.getCurrentPact(API_1);
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
-        Pact.Interaction interaction = pact.getInteractions().get(0);
+        RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
         assertNotNull(interaction.getRequest().getMatchingRules());
         assertNotNull(interaction.getResponse().getMatchingRules());
     }
@@ -127,19 +132,22 @@ public class MockitoCoverageTest {
         assertEquals(3, pact.getInteractions().size());
         
         // First interaction
-        assertEquals("First response", pact.getInteractions().get(0).getDescription());
-        assertEquals(200, pact.getInteractions().get(0).getResponse().getStatus());
-        assertEquals("\"First response\"", pact.getInteractions().get(0).getResponse().getBody().toString());
+        RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
+        assertEquals("First response", interaction.getDescription());
+        assertEquals(200, interaction.getResponse().getStatus());
+        assertEquals("First response", interaction.getResponse().getBody().valueAsString());
         
         // Second interaction
-        assertEquals("Second response", pact.getInteractions().get(1).getDescription());
-        assertEquals(200, pact.getInteractions().get(1).getResponse().getStatus());
-        assertEquals("\"Second response\"", pact.getInteractions().get(1).getResponse().getBody().toString());
+        RequestResponseInteraction interaction1 = (RequestResponseInteraction) pact.getInteractions().get(1);
+        assertEquals("Second response", interaction1.getDescription());
+        assertEquals(200, interaction1.getResponse().getStatus());
+        assertEquals("Second response", interaction1.getResponse().getBody().valueAsString());
         
         // Third interaction
-        assertEquals("Not found response", pact.getInteractions().get(2).getDescription());
-        assertEquals(404, pact.getInteractions().get(2).getResponse().getStatus());
-        assertNull(pact.getInteractions().get(2).getResponse().getBody());
+        RequestResponseInteraction interaction2 = (RequestResponseInteraction) pact.getInteractions().get(2);
+        assertEquals("Not found response", interaction2.getDescription());
+        assertEquals(404, interaction2.getResponse().getStatus());
+        assertTrue(interaction2.getResponse().getBody().isNotPresent());
     }
 
     @Test
@@ -157,9 +165,9 @@ public class MockitoCoverageTest {
         Pact pact = UtilsKt.getCurrentPact(API_1);
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
-        Pact.Interaction interaction = pact.getInteractions().get(0);
+        RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
         assertEquals(500, interaction.getResponse().getStatus());
-        assertEquals("\"Service unavailable\"", interaction.getResponse().getBody().toString());
+        assertEquals("Service unavailable", interaction.getResponse().getBody().valueAsString());
     }
 
     @Test
@@ -189,27 +197,27 @@ public class MockitoCoverageTest {
         // then
         Pact pact = UtilsKt.getCurrentPact(API_1);
         assertNotNull(pact);
-        List<Pact.Interaction> interactions = pact.getInteractions();
+        List<RequestResponseInteraction> interactions = pact.getInteractions().stream().map(interaction -> (RequestResponseInteraction)interaction).toList();
         assertEquals(4, interactions.size());
 
         // First interaction
         assertEquals("Initial successful response", interactions.get(0).getDescription());
         assertEquals(200, interactions.get(0).getResponse().getStatus());
-        assertEquals("\"Initial response\"", interactions.get(0).getResponse().getBody().toString());
+        assertEquals("Initial response", interactions.get(0).getResponse().getBody().valueAsString());
 
         // Second interaction
         assertEquals("Second successful response", interactions.get(1).getDescription());
         assertEquals(200, interactions.get(1).getResponse().getStatus());
-        assertEquals("\"Second response\"", interactions.get(1).getResponse().getBody().toString());
+        assertEquals("Second response", interactions.get(1).getResponse().getBody().valueAsString());
 
         // Third interaction
         assertEquals("Error response", interactions.get(2).getDescription());
         assertEquals(400, interactions.get(2).getResponse().getStatus());
-        assertEquals("\"Invalid request\"", interactions.get(2).getResponse().getBody().toString());
+        assertEquals("Invalid request", interactions.get(2).getResponse().getBody().valueAsString());
 
         // Fourth interaction
         assertEquals("Not found response", interactions.get(3).getDescription());
         assertEquals(404, interactions.get(3).getResponse().getStatus());
-        assertNull(interactions.get(3).getResponse().getBody());
+        assertTrue(interactions.get(3).getResponse().getBody().isNotPresent());
     }
 } 

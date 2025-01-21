@@ -1,5 +1,6 @@
 package io.github.ludorival.pactjvm.mock.mockk
 
+import au.com.dius.pact.core.model.RequestResponseInteraction
 import io.github.ludorival.pactjvm.mock.*
 import io.github.ludorival.pactjvm.mock.Call as MockCall
 import io.mockk.*
@@ -8,7 +9,7 @@ class PactMockKStubScope<T, B>(
     private val mockKStubScope: MockKStubScope<T, B>
 ) {
 
-    private val interactionBuilder = InteractionBuilder()
+    private val interactionBuilder = InteractionBuilder<T>()
 
     infix fun withDescription(description: InteractionHandler<String>) = apply {
         interactionBuilder.description(description)
@@ -20,7 +21,7 @@ class PactMockKStubScope<T, B>(
         }
     }
 
-    infix fun given(block: InteractionBuilder.ProviderStateBuilder.(Pact.Interaction) -> InteractionBuilder.ProviderStateBuilder) = apply {
+    infix fun given(block: ProviderStateBuilder.() -> ProviderStateBuilder) = apply {
         interactionBuilder.providerState(block)
     }
 
@@ -71,13 +72,13 @@ class PactMockKStubScope<T, B>(
         private val mockKAdditionalAnswerScope: MockKAdditionalAnswerScope<T, B>,
     ) {
 
-        private val interactionBuilder = InteractionBuilder()
+        private val interactionBuilder = InteractionBuilder<T>()
 
         infix fun withDescription(description: InteractionHandler<String>) = apply {
             interactionBuilder.description(description)
         }
 
-        infix fun given(block: InteractionBuilder.ProviderStateBuilder.(Pact.Interaction) -> InteractionBuilder.ProviderStateBuilder) = apply {
+        infix fun given(block: ProviderStateBuilder.() -> ProviderStateBuilder) = apply {
             interactionBuilder.providerState(block)
         }
 

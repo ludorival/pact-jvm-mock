@@ -1,6 +1,7 @@
 package io.github.ludorival.pactjvm.mock.test.contracts
 
-import io.github.ludorival.pactjvm.mock.Matcher
+import au.com.dius.pact.core.model.matchingrules.RegexMatcher
+import au.com.dius.pact.core.model.matchingrules.TypeMatcher
 import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
 import io.github.ludorival.pactjvm.mock.test.EMPTY_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.test.PREFERRED_SHOPPING_LIST
@@ -24,7 +25,7 @@ fun RestTemplate.willCreateShoppingList(description: String? = null) =
         }
         .withDescription(description)
         .given { state("the shopping list is empty", mapOf("userId" to USER_ID)) }
-        .macthingResponse { body("created_at", Matcher(Matcher.MatchEnum.TYPE)) } returns
+        .macthingResponse { body("created_at", TypeMatcher) } returns
         ResponseEntity.ok(EMPTY_SHOPPING_LIST)
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
@@ -74,11 +75,11 @@ fun RestTemplate.willListTwoShoppingLists() =
         }
         .withDescription("list two shopping lists")
         .matchingRequest {
-            header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
+            header("Authorization", RegexMatcher( "Bearer .*"))
         }
         .macthingResponse {
-            body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
-            body("[*].created_at", Matcher(Matcher.MatchEnum.TYPE))
+            body("[*].id", TypeMatcher)
+            body("[*].created_at", TypeMatcher)
         } returns
         ResponseEntity.ok(listOf(PREFERRED_SHOPPING_LIST, SHOPPING_LIST_TO_DELETE))
 

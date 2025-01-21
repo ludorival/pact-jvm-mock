@@ -162,15 +162,16 @@ allprojects {
 // Individual project dependencies
 project(":pact-jvm-mock") {
     dependencies {
-        compileOnly("com.fasterxml.jackson.core:jackson-databind:2.18.2")
-        compileOnly("org.slf4j:slf4j-api:2.0.16")
         compileOnly("org.junit.jupiter:junit-jupiter-api:5.11.4")
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
         implementation(kotlin("stdlib-jdk8"))
         implementation("org.slf4j:slf4j-api:2.0.16")
+        api("au.com.dius.pact.core:model:4.6.16")
+        implementation("au.com.dius.pact.core:support:4.6.16")
     }
 }
+
 project(":pact-jvm-mock-mockk") {
     dependencies {
         api(project(":pact-jvm-mock"))

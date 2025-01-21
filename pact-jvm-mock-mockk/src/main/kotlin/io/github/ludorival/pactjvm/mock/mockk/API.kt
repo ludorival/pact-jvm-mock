@@ -10,22 +10,21 @@ fun <T> uponReceiving(stubBlock: MockKMatcherScope.() -> T) = PactMockKStubScope
 fun <T> uponCoReceiving(stubBlock: suspend MockKMatcherScope.() -> T) = PactMockKStubScope(coEvery(stubBlock))
 fun <T> Answer<T>.interceptAndGet(
     it: Call,
-    builder: InteractionBuilder
+    builder: InteractionBuilder<T>
 ): T {
     val result = runCatching { answer(it) }
-    return CallInterceptor.getInstance()
-        .interceptAndGet(
-            it.invocation.let {
-                MockCall(
-                    MockCall.Method(
-                        it.method.name,
-                        it.method.paramTypes.map { it.java }.toTypedArray()
-                    ),
-                    it.self,
-                    it.args
-                )
-            },
-            result,
-            builder
+    val call = it.invocation.let {
+        MockCall(
+            MockCall.Method(
+                it.method.name,
+                it.method.paramTypes.map { it.java }.toTypedArray()
+            ),
+            it.self,
+            it.args,
+            result
         )
+    }
+    builder.call = call
+    return CallInterceptor.getInstance()
+        .interceptAndGet(builder)
 }

@@ -1,39 +1,21 @@
 package io.github.ludorival.pactjvm.mock
 
+import au.com.dius.pact.core.model.*
 import java.net.URI
+import java.nio.charset.StandardCharsets
 
-abstract class PactMockAdapter {
+abstract class PactMockAdapter<I: Interaction> {
 
-    abstract fun support(call: Call): Boolean
+    abstract fun support(call: Call<*>): Boolean
 
-    open fun <T> buildInteraction(
-        call: Call,
-        result: Result<T>,
-        interactionBuilder: InteractionBuilder
-    ): Pact.Interaction {
-        val uri = call.getUri()
-        val body = call.getRequestBody()
-        return interactionBuilder.build(request = Pact.Interaction.Request(
-            method = call.getHttpMethod(),
-            path = uri.path,
-            query = uri.query,
-            headers = call.getHttpHeaders(),
-            body = body
-        ),
-        response = result.getResponse())
-    }
+    abstract fun <T> buildInteraction(
+        interactionBuilder: InteractionBuilder<T>,
+        providerName: String
+    ): I
 
-
-    abstract fun Call.getUri(): URI
-
-    abstract fun Call.getHttpMethod(): Pact.Interaction.Request.Method
-
-    abstract fun Call.getHttpHeaders(): Map<String, String>?
-
-    abstract fun Call.getRequestBody(): Any?
-
-    abstract fun <T> Result<T>.getResponse(): Pact.Interaction.Response
-
+    abstract fun determineProvider(call: Call<*>): String
 
     open fun <T> returnsResult(result: Result<T>) = result.getOrThrow()
+
 }
+

@@ -1,63 +1,65 @@
 {
-  "consumer" : {
-    "name" : "shopping-list"
+  "consumer": {
+    "name": "shopping-list"
   },
-  "provider" : {
-    "name" : "user-service"
-  },
-  "interactions" : [ {
-    "description" : "should set preferred shopping list",
-    "request" : {
-      "method" : "PUT",
-      "path" : "/user-service/v1/user/123",
-      "headers" : { },
-      "body" : {
-        "preferredShoppingListId" : 1
+  "interactions": [
+    {
+      "description": "get the user profile",
+      "providerStates": [
+        {
+          "name": "The user has a preferred shopping list",
+          "params": {
+            "userId": 123
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/user-service/v1/user/123"
+      },
+      "response": {
+        "body": {
+          "email": "user@email.com",
+          "id": 123,
+          "name": "User name",
+          "userPreferences": {
+            "preferredShoppingListId": 1
+          }
+        },
+        "status": 200
       }
     },
-    "response" : {
-      "body" : {
-        "id" : 123,
-        "name" : "User name",
-        "email" : "user@email.com",
-        "userPreferences" : {
-          "preferredShoppingListId" : 1
-        }
+    {
+      "description": "should set preferred shopping list",
+      "request": {
+        "body": {
+          "preferredShoppingListId": 1
+        },
+        "method": "PUT",
+        "path": "/user-service/v1/user/123"
       },
-      "status" : 200,
-      "headers" : { }
-    }
-  }, {
-    "providerStates" : [ {
-      "name" : "The user has a preferred shopping list",
-      "params" : {
-        "userId" : 123
+      "response": {
+        "body": {
+          "email": "user@email.com",
+          "id": 123,
+          "name": "User name",
+          "userPreferences": {
+            "preferredShoppingListId": 1
+          }
+        },
+        "status": 200
       }
-    } ],
-    "description" : "get the user profile",
-    "request" : {
-      "method" : "GET",
-      "path" : "/user-service/v1/user/123"
-    },
-    "response" : {
-      "body" : {
-        "id" : 123,
-        "name" : "User name",
-        "email" : "user@email.com",
-        "userPreferences" : {
-          "preferredShoppingListId" : 1
-        }
-      },
-      "status" : 200,
-      "headers" : { }
     }
-  } ],
-  "metadata" : {
-    "pactSpecification" : {
-      "version" : "3.0.0"
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
     },
-    "pactJvm" : {
-      "version" : "4.0.10"
+    "pactSpecification": {
+      "version": "3.0.0"
     }
+  },
+  "provider": {
+    "name": "user-service"
   }
 }

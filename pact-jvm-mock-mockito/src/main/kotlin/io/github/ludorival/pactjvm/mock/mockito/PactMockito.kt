@@ -2,6 +2,8 @@ package io.github.ludorival.pactjvm.mock.mockito
 
 import io.github.ludorival.pactjvm.mock.*
 import io.github.ludorival.pactjvm.mock.Call as MockCall
+import au.com.dius.pact.core.model.RequestResponseInteraction
+import io.github.ludorival.pactjvm.mock.Call
 import org.mockito.internal.exceptions.Reporter.notAnException
 import org.mockito.internal.progress.ThreadSafeMockingProgress.mockingProgress
 import org.mockito.internal.stubbing.BaseStubbing
@@ -14,9 +16,10 @@ import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.Mockito;
 
 
-class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing<T>) : OngoingStubbing<T> by ongoingStubbing {
+class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing<T>) :
+    OngoingStubbing<T> by ongoingStubbing {
 
-    private val interactionBuilder = InteractionBuilder()
+    private val interactionBuilder = InteractionBuilder<T>()
     fun withDescription(description: String): PactMockitoOngoingStubbing<T> {
         interactionBuilder.description { description }
         return this
@@ -26,7 +29,7 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
         interactionBuilder.description(description)
     }
 
-    fun given(block: InteractionBuilder.ProviderStateBuilder.(Pact.Interaction) -> InteractionBuilder.ProviderStateBuilder): PactMockitoOngoingStubbing<T> {
+    fun given(block: ProviderStateBuilder.() -> ProviderStateBuilder): PactMockitoOngoingStubbing<T> {
         interactionBuilder.providerState(block)
         return this
     }
@@ -35,26 +38,26 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
         interactionBuilder.requestMatchingRules(block)
     }
 
-    fun matchingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder): PactMockitoOngoingStubbing<T> = apply {
-        interactionBuilder.responseMatchingRules(block)
-    }
+    fun matchingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder): PactMockitoOngoingStubbing<T> =
+        apply {
+            interactionBuilder.responseMatchingRules(block)
+        }
 
-    fun andThenAnswer(answer: Answer<*>): PactMockitoOngoingStubbing<T>  {
+    fun andThenAnswer(answer: Answer<*>): PactMockitoOngoingStubbing<T> {
         return PactMockitoOngoingStubbing(ongoingStubbing.thenAnswer { invocation ->
-            val result = runCatching { answer.answer(invocation) }
+            val result = runCatching { answer.answer(invocation) } as Result<T>
+            val call = MockCall(
+                MockCall.Method(
+                    invocation.method.name,
+                    invocation.method.parameterTypes
+                ),
+                invocation.mock,
+                invocation.arguments.toList(),
+                result
+            )
+            interactionBuilder.call = call
             CallInterceptor.getInstance()
-                .interceptAndGet(
-                        MockCall(
-                            MockCall.Method(
-                                invocation.method.name,
-                                invocation.method.parameterTypes
-                            ),
-                            invocation.mock,
-                            invocation.arguments.toList()
-                                   ),
-                        result,
-                        interactionBuilder
-                )
+                .interceptAndGet(interactionBuilder)
         })
     }
 
@@ -86,8 +89,9 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
         return stubbing ?: error("No exception thrown")
     }
 
-    fun andThenThrow(throwableType: Class<out Throwable>): PactMockitoOngoingStubbing<T> = andThenAnswer(ThrowsExceptionForClassType(throwableType))
-    
+    fun andThenThrow(throwableType: Class<out Throwable>): PactMockitoOngoingStubbing<T> =
+        andThenAnswer(ThrowsExceptionForClassType(throwableType))
+
     override fun thenThrow(throwableType: Class<out Throwable>): OngoingStubbing<T> = andThenThrow(throwableType)
 
     override fun thenThrow(
