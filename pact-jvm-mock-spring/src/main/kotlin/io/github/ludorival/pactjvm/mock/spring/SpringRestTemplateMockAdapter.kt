@@ -1,15 +1,7 @@
 package io.github.ludorival.pactjvm.mock.spring
 
-import io.github.ludorival.pactjvm.mock.Pact
-import io.github.ludorival.pactjvm.mock.Pact.Interaction.Request.Method
-import io.github.ludorival.pactjvm.mock.PactMockResponseError
-import io.github.ludorival.pactjvm.mock.PactMockAdapter
-import io.github.ludorival.pactjvm.mock.Call
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.RequestEntity
-import org.springframework.http.ResponseEntity
+import au.com.dius.pact.core.model.*
+import org.springframework.http.HttpMethod as SpringHttpMethod
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
@@ -19,12 +11,14 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.ludorival.pactjvm.mock.*
+import org.springframework.http.*
 
 @Suppress("TooManyFunctions")
-class SpringRestTemplateMockAdapter :
-    PactMockAdapter() {
+class SpringRestTemplateMockAdapter(private val objectMapperByProvider: (String) -> ObjectMapper? = { null }) :
+    PactMockAdapter<RequestResponseInteraction>() {
 
-    private val objectMapper = ObjectMapper().apply {
+    private val defaultObjectMapper = ObjectMapper().apply {
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
     private val uriTemplate by lazy {
@@ -33,90 +27,153 @@ class SpringRestTemplateMockAdapter :
         uriFactory
     }
 
-    override fun support(call: Call): Boolean {
+    override fun support(call: Call<*>): Boolean {
         return call.self is RestTemplate
     }
 
+    override fun <T> buildInteraction(
+        interactionBuilder: InteractionBuilder<T>,
+        providerName: String
+    ): RequestResponseInteraction {
+        val call = interactionBuilder.call
+        val uri = call.getUri()
+        val body = call.getRequestBody()
+        val queryParams = uri.query?.split("&")
+            ?.filter { it.isNotEmpty() }
+            ?.map { param ->
+                val parts = param.split("=", limit = 2)
+                parts[0] to listOf(if (parts.size > 1) parts[1] else null)
+            }?.toMap()?.toMutableMap() ?: mutableMapOf()
+        val objectMapper = objectMapperByProvider.invoke(providerName) ?: this.defaultObjectMapper
+
+        val requestHeaders = call.getHttpHeaders()
+        val request = Request(
+            method = call.getHttpMethod().toString(),
+            path = uri.path,
+            query = queryParams,
+            headers = requestHeaders.toSingleValueMap().mapValues { (_, v) -> listOf(v) }.toMutableMap(),
+            body = serializeBody(body, requestHeaders, objectMapper)
+        )
+        val responseEntity = call.asResponseEntity()
+        val response = with(responseEntity) {
+            Response(
+                status = statusCode.value(),
+                headers = headers.toSingleValueMap().mapValues { (_, v) -> listOf(v) }.toMutableMap(),
+                body = serializeBody(this.body, headers, objectMapper)
+            )
+        }
+        return interactionBuilder.build {
+            RequestResponseInteraction(
+                description, providerStates, request.apply {
+                    matchingRules = requestMatchingRules
+                }, response.apply {
+                    matchingRules = responseMatchingRules
+                }
+            )
+        }
+    }
+
+    override fun determineProvider(call: Call<*>): String {
+        val uri = call.getUri()
+        return uri.path.split("/").first { it.isNotBlank() }
+    }
+
+    private fun <T> serializeBody(
+        body: T,
+        httpHeaders: HttpHeaders,
+        objectMapper: ObjectMapper
+    ): OptionalBody {
+        val contentType = if (httpHeaders.contentType == null && body != null && body !is String)
+            ContentType.JSON else
+            ContentType(org.apache.tika.mime.MediaType.parse(httpHeaders.contentType?.toString()))
+        return when {
+            contentType.isJson() -> OptionalBody.body(objectMapper.writeValueAsBytes(body), contentType)
+            else -> OptionalBody.body(
+                body?.toString(),
+                contentType
+            )
+        }
+    }
+
     @Suppress("SpreadOperator")
-    override fun Call.getUri(): URI {
+    private fun <T> Call<T>.getUri(): URI {
         // usually, the first parameter is the url
         val url = args[0]
         val requestEntity = getRequestEntity()
         return when {
-            requestEntity != null        -> requestEntity.url
-            url != null && url is URI    -> url
+            requestEntity != null -> requestEntity.url
+            url != null && url is URI -> url
             url != null && url is String -> {
                 val args = args.getUriVariables()
                 uriTemplate.expand(url, *args)
             }
 
-            else                         -> error("Expected to found an url")
+            else -> error("Expected to found an url")
         }
     }
 
 
-    override fun Call.getHttpMethod(): Method {
-    
-        return Method.values().find { methodName.startsWith(it.name.lowercase()) }
-            ?: args.filterIsInstance<HttpMethod>().firstOrNull()?.toPactMethod()
+    private fun <T> Call<T>.getHttpMethod(): HttpMethod {
+        return HttpMethod.entries.find { methodName.startsWith(it.name.lowercase()) }
+            ?: args.filterIsInstance<SpringHttpMethod>().firstOrNull()?.toPactMethod()
             ?: getRequestEntity()?.method?.toPactMethod()
             ?: error("Unable to determine the HttpMethod with method name $methodName")
     }
 
 
-    override fun Call.getHttpHeaders(): Map<String, String>? {
-        return getHttpEntity()?.headers?.toSingleValueMap()
-            ?: getRequestEntity()?.headers?.toSingleValueMap()
+    private fun <T> Call<T>.getHttpHeaders(): HttpHeaders {
+        return getHttpEntity()?.headers
+            ?: getRequestEntity()?.headers ?: HttpHeaders.EMPTY
     }
 
-    override fun Call.getRequestBody(): Any? {
+    private fun <T> Call<T>.getRequestBody(): Any? {
         val httpEntity = getHttpEntity()
         val requestEntity = getRequestEntity()
         val indexBody by lazy { method.paramTypes.indexOfFirst { it == Any::class.java } }
         return when {
-            httpEntity != null    -> httpEntity.body
+            httpEntity != null -> httpEntity.body
             requestEntity != null -> requestEntity.body
-            indexBody >= 0        -> args[indexBody]
-            else                  -> null
+            indexBody >= 0 -> args[indexBody]
+            else -> null
         }
     }
 
-    override fun <T> Result<T>.getResponse(): Pact.Interaction.Response {
-        return asResponseEntity().asResponse()
-    }
-
-    private fun HttpMethod.toPactMethod() = Method.valueOf(this.toString())
-    private fun Call.getHttpEntity(): HttpEntity<Any>? {
+    private fun SpringHttpMethod.toPactMethod() = HttpMethod.valueOf(this.toString())
+    private fun Call<*>.getHttpEntity(): HttpEntity<Any>? {
         return args.filterIsInstance<HttpEntity<Any>>().firstOrNull()
     }
 
+
     @Suppress("UNCHECKED_CAST")
-    private fun <T> Result<T>.asResponseEntity(): ResponseEntity<Any> {
-        val response = getOrNull()
-        val exception = exceptionOrNull()
+    private fun <T> Call<T>.asResponseEntity(): ResponseEntity<Any> {
+        val response = result.getOrNull()
+        val exception = result.exceptionOrNull()
         return when (response) {
-            is Unit              -> ResponseEntity.ok().build()
+            is Unit -> ResponseEntity.ok().build()
             is ResponseEntity<*> -> response as ResponseEntity<Any>
-            else                 -> when (exception) {
-                null                       -> ResponseEntity.ok(response)
-                is PactMockResponseError   -> exception.response as? ResponseEntity<Any> ?: error("Expect to provide a ResponseEntity")
+            else -> when (exception) {
+                null -> ResponseEntity.ok(response)
+                is PactMockResponseError -> exception.response as? ResponseEntity<Any>
+                    ?: error("Expect to provide a ResponseEntity")
+
                 is HttpStatusCodeException -> ResponseEntity.status(exception.statusCode)
                     .headers(exception.responseHeaders)
-                    .body(exception.responseBodyAsString.run {asJson() ?: ifEmpty { exception.statusText }})
+                    .body(exception.responseBodyAsString)
 
-                else                       -> error("Not supported exception as Client exception")
+                else -> error("Not supported exception as Client exception")
             }
         }
     }
 
-    private fun String.asJson(): Any? = runCatching {objectMapper.readValue(this, Any::class.java) }.getOrNull()
+    private fun String.asJson(): Any? = runCatching { defaultObjectMapper.readValue(this, Any::class.java) }.getOrNull()
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> returnsResult(result: Result<T>): T {
         val exception = result.exceptionOrNull()
         if (exception is PactMockResponseError) {
             val responseEntity = exception.response as ResponseEntity<Any>
-            val statusCode : HttpStatus = responseEntity.statusCode as? HttpStatus ?: HttpStatus.valueOf(responseEntity.statusCode.value())
+            val statusCode: HttpStatus =
+                responseEntity.statusCode as? HttpStatus ?: HttpStatus.valueOf(responseEntity.statusCode.value())
             val body = responseEntity.body?.toString()
             val bodyBytes = body?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0)
             throw HttpClientErrorException.create(
@@ -130,11 +187,11 @@ class SpringRestTemplateMockAdapter :
         return super.returnsResult(result)
     }
 
-    private fun ResponseEntity<Any>.asResponse(): Pact.Interaction.Response {
-        return Pact.Interaction.Response(
+    private fun ResponseEntity<Any>.asResponse(): Response {
+        return Response(
             status = statusCode.value(),
-            headers = headers.toSingleValueMap(),
-            body = body
+            headers = headers.toSingleValueMap().mapValues { (_, v) -> listOf(v) }.toMutableMap(),
+            body = OptionalBody.body(body?.toString()?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0))
         )
     }
 
@@ -145,8 +202,11 @@ class SpringRestTemplateMockAdapter :
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun Call.getRequestEntity(): RequestEntity<Any>? {
+    private fun <T> Call<T>.getRequestEntity(): RequestEntity<Any>? {
         val firstArg = args.first()
         return if (firstArg is RequestEntity<*>) firstArg as? RequestEntity<Any> else null
     }
+
+    private fun ObjectMapper.toJson(value: Any?): Map<String, Any?>? = value?.let { valueToTree(it) }
+
 }

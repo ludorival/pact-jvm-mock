@@ -2,8 +2,7 @@ Pact JVM Mock
 =========================
 ![Build status](https://github.com/ludorival/pact-jvm-mock/actions/workflows/main.yaml/badge.svg)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ludorival/pact-jvm-mock)
-> A Kotlin library that leverages existing mocks to create Pact contract files, using the popular mocking
-> library [Mockk](https://github.com/mockk/mockk).
+> A Kotlin library that leverages existing mocks to create Pact contract files, using the popular mocking libraries [Mockk](https://github.com/mockk/mockk) and [Mockito](https://github.com/mockito/mockito).
 
 ## Motivation
 
@@ -11,12 +10,12 @@ Pact is a powerful tool for ensuring the compatibility of microservices. It allo
 services and test them in isolation.
 
 However, writing these contracts can be time-consuming and repetitive. This is where pact-jvm-mock comes in. It
-automatically generates Pact contracts from your existing [Mockk](https://github.com/mockk/mockk) mocks, saving you time
+automatically generates Pact contracts from your existing [Mockk](https://github.com/mockk/mockk) mocks or [Mockito](https://github.com/mockito/mockito) mocks, saving you time
 and reducing the risk of human error.
 
 ## Features
 
-- Automatically generate Pact contracts from existing [Mockk](https://github.com/mockk/mockk) mocks
+- Automatically generate Pact contracts from existing [Mockk](https://github.com/mockk/mockk) mocks or [Mockito](https://github.com/mockito/mockito) mocks
 - Supports all common mock interactions, such as method calls and property accesses
 - Compatible with Spring Rest Template client and fully extensible
 - Easy to integrate with your existing testing workflow
@@ -137,7 +136,7 @@ uponReceiving(restTemplate.getForEntity(any(String.class), eq(UserProfile.class)
 // With error response
 uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(UserProfile.class)))
     .withDescription("Create user profile - validation error")
-    .given((builder, interaction) -> builder.state("Invalid user data", Collections.emptyMap()))
+    .given((builder, call) -> builder.state("Invalid user data", Collections.emptyMap()))
     .thenThrow(HttpClientErrorException.BadRequest.create(
                     HttpStatus.BAD_REQUEST,
                     errorMessage,
@@ -157,9 +156,9 @@ uponReceiving(restTemplate.exchange(
         any(ParameterizedTypeReference.class)
     ))
     .withDescription("List users")
-    .given((builder, interaction) -> builder.state("Users exist", Collections.emptyMap()))
-    .matchingRequest(rules -> rules.header("Authorization", new Matcher(Matcher.MatchEnum.REGEX, "Bearer .*")))
-    .matchingResponse(rules -> rules.body("[*].id", new Matcher(Matcher.MatchEnum.TYPE)))
+    .given((builder, call) -> builder.state("Users exist", Collections.emptyMap()))
+    .matchingRequest(rules -> rules.header("Authorization", new RegexMatcher("Bearer .*")))
+    .matchingResponse(rules -> rules.body("[*].id", TypeMatcher.INSTANCE))
     .thenReturn(ResponseEntity.ok(Arrays.asList(USER_1, USER_2)));
 ```
 
@@ -221,9 +220,9 @@ uponReceiving {
         any<ParameterizedTypeReference<List<User>>>()
     )
 } matchingRequest {
-    header("Authorization", Matcher(Matcher.MatchEnum.REGEX, "Bearer .*"))
+    header("Authorization", RegexMatcher("Bearer .*"))
 } matchingResponse {
-    body("[*].id", Matcher(Matcher.MatchEnum.TYPE))
+    body("[*].id", TypeMatcher)
 } returns ResponseEntity.ok(listOf(USER_1, USER_2))
 ```
 In this example:
@@ -251,14 +250,15 @@ You can specify a custom ObjectMapper for serializing request/response bodies fo
 
 ```kotlin
 // MyServicePactConfig.kt
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
-
-    override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter({providerName ->
+    Jackson2ObjectMapperBuilder()
         .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
         .serializerByType(
             LocalDate::class.java,
             serializerAsDefault<LocalDate>("2023-01-01")
         ).build()
+})) {
+
 } 
 
 ```
@@ -273,15 +273,16 @@ for `determineConsumerFromUrl`
 
 ```kotlin
 // MyServicePactConfig.kt
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
-
-    override fun isDeterministic() = true // <-- force to be deterministic
-    override fun customizeObjectMapper(providerName: String) = Jackson2ObjectMapperBuilder()
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter({providerName ->
+    Jackson2ObjectMapperBuilder()
         .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
         .serializerByType(
             LocalDate::class.java,
             serializerAsDefault<LocalDate>("2023-01-01")
         ).build()
+})) {
+
+    override fun isDeterministic() = true // <-- force to be deterministic
 } 
 ```
 

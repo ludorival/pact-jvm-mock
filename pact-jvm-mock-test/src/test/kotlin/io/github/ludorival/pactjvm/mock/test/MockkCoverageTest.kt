@@ -1,14 +1,17 @@
 package io.github.ludorival.pactjvm.mock.test
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
+import au.com.dius.pact.core.model.RequestResponseInteraction
+import au.com.dius.pact.core.model.matchingrules.RegexMatcher
+import au.com.dius.pact.core.model.matchingrules.TypeMatcher
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mock.*
-import io.github.ludorival.pactjvm.mock.Matcher
+import io.github.ludorival.pactjvm.mock.PactConsumer
+import io.github.ludorival.pactjvm.mock.anError
+import io.github.ludorival.pactjvm.mock.clearPact
+import io.github.ludorival.pactjvm.mock.getCurrentPact
 import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
-import io.mockk.*
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -43,6 +46,7 @@ class MockkCoverageTest {
         }
     }
 
+
     @Test
     fun `should intercept with provider state and description`() {
         given {
@@ -60,8 +64,8 @@ class MockkCoverageTest {
                 assertEquals(1, interactions.size)
                 with(interactions.first()) {
                     assertEquals("Get user profile", description)
-                    assertEquals("user exists", providerStates?.first()?.name)
-                    assertEquals("123", providerStates?.first()?.params?.get("userId"))
+                    assertEquals("user exists", providerStates.first().name)
+                    assertEquals("123", providerStates.first().params.get("userId"))
                 }
             }
         }
@@ -77,9 +81,9 @@ class MockkCoverageTest {
                     eq(String::class.java)
                 )
             }.matchingRequest {
-                header("Content-Type", Matcher(match = Matcher.MatchEnum.REGEX, regex = "application/json.*"))
+                header("Content-Type", RegexMatcher( "application/json.*"))
             }.macthingResponse {
-                body("id", Matcher(match = Matcher.MatchEnum.TYPE))
+                body("id", TypeMatcher)
             }.returns(ResponseEntity.ok("""{"id": "123"}"""))
         } `when` {
             val headers = HttpHeaders()
@@ -95,7 +99,7 @@ class MockkCoverageTest {
         } then {
             with(getCurrentPact(API_1)!!) {
                 assertEquals(1, interactions.size)
-                with(interactions.first()) {
+                with(interactions.first() as RequestResponseInteraction) {
                     assertNotNull(request.matchingRules)
                     assertNotNull(response.matchingRules)
                 }
@@ -114,17 +118,15 @@ class MockkCoverageTest {
                 ResponseEntity.status(HttpStatus.NOT_FOUND).build()
             )
         } `when` {
-            val responses = listOf(
-                restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java),
-                restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java),
-                restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java)
-            )
+            restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java)
+            restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java)
+            restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java)
         } then {
-            with(getCurrentPact(API_1)!!) {
-                assertEquals(3, interactions.size)
-                assertEquals(200, interactions[0].response.status)
-                assertEquals(200, interactions[1].response.status)
-                assertEquals(404, interactions[2].response.status)
+            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+                assertEquals(3, size)
+                assertEquals(200, this[0].response.status)
+                assertEquals(200, this[1].response.status)
+                assertEquals(404, this[2].response.status)
             }
         }
     }
@@ -140,10 +142,10 @@ class MockkCoverageTest {
                 restTemplate.getForEntity("$TEST_API_1_URL/error", String::class.java)
             }
         } then {
-            with(getCurrentPact(API_1)!!) {
-                assertEquals(1, interactions.size)
-                assertEquals(500, interactions[0].response.status)
-                assertEquals("\"Service unavailable\"", interactions[0].response.body.toString())
+            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+                assertEquals(1, size)
+                assertEquals(500, this[0].response.status)
+                assertEquals("Service unavailable", this[0].response.body.valueAsString())
             }
         }
     }
@@ -159,11 +161,11 @@ class MockkCoverageTest {
                 restTemplate.getForEntity("$TEST_API_1_URL/error", String::class.java)
             }
         } then {
-            with(getCurrentPact(API_1)!!) {
-                assertEquals(1, interactions.size)
-                assertEquals(400, interactions[0].response.status)
-                assertTrue(interactions[0].response.body is JsonNode)
-                assertEquals("""{"error":"VALIDATION_FAILURE","error_description":"The format is not supported"}""", interactions[0].response.body.toString())
+            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+                assertEquals(1, size)
+                assertEquals(400, this[0].response.status)
+                assertTrue(this[0].response.body.contentType.isJson())
+                assertEquals(""""{\"error\":\"VALIDATION_FAILURE\", \"error_description\": \"The format is not supported\"}"""", this[0].response.body.valueAsString())
             }
         }
     }
@@ -192,27 +194,27 @@ class MockkCoverageTest {
 
             responses.add(restTemplate.getForEntity("$TEST_API_1_URL/chain", String::class.java))
         } then {
-            with(getCurrentPact(API_1)!!) {
-                assertEquals(4, interactions.size)
-                with(interactions[0]) {
+            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+                assertEquals(4, size)
+                with(this[0]) {
                     assertEquals("Initial successful response", description)
                     assertEquals(200, response.status)
-                    assertEquals("\"Initial response\"", response.body.toString())
+                    assertEquals("Initial response", response.body.valueAsString())
                 }
-                with(interactions[1]) {
+                with(this[1]) {
                     assertEquals("Second successful response", description)
                     assertEquals(200, response.status)
-                    assertEquals("\"Second response\"", response.body.toString())
+                    assertEquals("Second response", response.body.valueAsString())
                 }
-                with(interactions[2]) {
+                with(this[2]) {
                     assertEquals("Error response", description)
                     assertEquals(400, response.status)
-                    assertEquals("\"Invalid request\"", response.body.toString())
+                    assertEquals("Invalid request", response.body.valueAsString())
                 }
-                with(interactions[3]) {
+                with(this[3]) {
                     assertEquals("Not found response", description)
                     assertEquals(404, response.status)
-                    assertNull(response.body)
+                    assertTrue(response.body.isNotPresent())
                 }
             }
         }
@@ -227,16 +229,16 @@ class MockkCoverageTest {
                     any<HttpEntity<Map<String, String>>>(),
                     eq(String::class.java)
                 )
-            }.withDescription { interaction ->
-                "POST request to ${interaction.request.path} with ${(interaction.request.body<Map<*, *>>())?.size ?: 0} parameters"
-            }.given { interaction ->
+            }.withDescription {
+                "POST request to ${call.firstArg<String>()} with ${(call.secondArg<HttpEntity<Map<*, *>>>().body.size)} parameters"
+            }.given {
+                val httpEntity = call.secondArg<HttpEntity<*>>()
                 state(
                     "request contains required fields",
                     mapOf(
-                        "description" to interaction.description,
-                        "method" to interaction.request.method,
-                        "path" to interaction.request.path,
-                        "contentType" to interaction.request.headers?.get("Content-Type")
+                        "method" to "POST",
+                        "path" to call.firstArg<String>(),
+                        "contentType" to (httpEntity.headers.contentType?.toString() ?: "")
                     )
                 )
             }.returns(ResponseEntity.ok("Success"))
@@ -255,12 +257,11 @@ class MockkCoverageTest {
             with(getCurrentPact(API_1)!!) {
                 assertEquals(1, interactions.size)
                 with(interactions.first()) {
-                    assertEquals("POST request to /service1/api/v1/users with 2 parameters", description)
-                    assertEquals("request contains required fields", providerStates?.first()?.name)
-                    with(providerStates?.first()?.params!!) {
-                        assertEquals("POST request to /service1/api/v1/users with 2 parameters", get("description"))
+                    assertEquals("POST request to http://localhost:8080/service1/api/v1/users with 2 parameters", description)
+                    assertEquals("request contains required fields", providerStates.first().name)
+                    with(providerStates.first().params) {
                         assertEquals("POST", get("method")?.toString())
-                        assertEquals("/service1/api/v1/users", get("path"))
+                        assertEquals("http://localhost:8080/service1/api/v1/users", get("path"))
                         assertEquals("application/json", get("contentType"))
                     }
                 }

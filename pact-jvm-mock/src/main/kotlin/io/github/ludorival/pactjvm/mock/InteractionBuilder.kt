@@ -1,35 +1,46 @@
 package io.github.ludorival.pactjvm.mock
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import au.com.dius.pact.core.model.*
+import au.com.dius.pact.core.model.matchingrules.MatchingRules
 
 
-class InteractionBuilder {
+class InteractionBuilder<T>() {
 
-    internal lateinit var currentObjectMapper: ObjectMapper
-    private var description: InteractionHandler<String?> =  { PactMock.currentTestName }
+    lateinit var call: Call<T>
+
+    private var descriptionHandler: InteractionHandler<String?> = { PactMock.currentTestName }
+
     private val requestMatchingRulesBuilder: MatchingRulesBuilder = MatchingRulesBuilder()
     private val responseMatchingRulesBuilder: MatchingRulesBuilder = MatchingRulesBuilder()
-    private var providerStatesHandler: (ProviderStateBuilder.(Pact.Interaction) -> ProviderStateBuilder)?  = null
-    fun description(description: InteractionHandler<String>) = apply { this.description = description }
+    private var providerStatesHandler: (ProviderStateBuilder.() -> ProviderStateBuilder)? =
+        null
 
-    fun providerState(block: ProviderStateBuilder.(Pact.Interaction) -> ProviderStateBuilder) = apply {
+    fun description(description: InteractionHandler<String>) = apply { descriptionHandler = description }
+
+    fun providerState(block: ProviderStateBuilder.() -> ProviderStateBuilder) = apply {
         providerStatesHandler = block
     }
 
-    fun build(request: Pact.Interaction.Request, response: Pact.Interaction.Response): Pact.Interaction {
-        val providerStateBuilder = ProviderStateBuilder()
-        return Pact.Interaction(request = request, response = response).run {
-            copy(description = description(this) ?: PactMock.currentTestName ?: "${request.method} ${request.path}?${request.query ?: ""} returns ${response.status}")
-        }.run {
-            providerStatesHandler?.invoke(providerStateBuilder, this)
-            copy(providerStates = providerStateBuilder.get().ifEmpty { null })
-         }.copy(
-            request = request.copy(matchingRules = requestMatchingRulesBuilder.build()),
-            response = response.copy(matchingRules = responseMatchingRulesBuilder.build())
-            )
+    data class DraftInteraction(
+        val description: String,
+        val providerStates: List<ProviderState>,
+        val requestMatchingRules: MatchingRules,
+        val responseMatchingRules: MatchingRules
+    )
+
+    fun <I : Interaction> build(
+        generator: DraftInteraction.() -> I
+    ): I {
+        val providerStateBuilder = ProviderStateBuilder(call)
+        providerStatesHandler?.invoke(providerStateBuilder)
+        val draftInteraction = DraftInteraction(
+            descriptionHandler(this) ?: PactMock.currentTestName ?: error("A description is required"),
+            providerStateBuilder.get(), requestMatchingRulesBuilder.build(), requestMatchingRulesBuilder.build()
+        )
+        return generator(draftInteraction)
 
     }
+
 
     fun responseMatchingRules(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
         responseMatchingRulesBuilder.apply { block() }
@@ -39,14 +50,5 @@ class InteractionBuilder {
         requestMatchingRulesBuilder.apply { block() }
     }
 
-    inner class ProviderStateBuilder {
-
-        val providerStates = mutableListOf<Pact.Interaction.ProviderState>()
-        fun state(state: String, params: Map<String, Any?>? = null): ProviderStateBuilder = apply {
-            providerStates.add(Pact.Interaction.ProviderState(state, params))
-        }
-
-        internal fun get(): List<Pact.Interaction.ProviderState> = providerStates.toList()
-    }
 
 }
