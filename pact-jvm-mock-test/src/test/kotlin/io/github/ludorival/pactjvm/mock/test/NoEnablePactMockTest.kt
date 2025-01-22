@@ -13,7 +13,7 @@ import org.springframework.http.*
 import org.springframework.web.client.RestTemplate
 import au.com.dius.pact.core.model.RequestResponsePact
 
-class NoPactConsumerTest {
+class NoEnablePactMockTest {
 
     val restTemplate = mockk<RestTemplate>()
 

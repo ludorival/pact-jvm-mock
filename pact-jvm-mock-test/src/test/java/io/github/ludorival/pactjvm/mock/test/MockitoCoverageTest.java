@@ -1,6 +1,5 @@
 package io.github.ludorival.pactjvm.mock.test;
 
-import au.com.dius.pact.core.model.Interaction;
 import au.com.dius.pact.core.model.Pact;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.RequestResponseInteraction;
@@ -8,7 +7,6 @@ import au.com.dius.pact.core.model.matchingrules.RegexMatcher;
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher;
 import io.github.ludorival.pactjvm.mock.*;
 import io.github.ludorival.pactjvm.mock.mockito.PactMockito;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
-@PactConsumer(NonDeterministicPact.class)
+@EnablePactMock(NonDeterministicPact.class)
 public class MockitoCoverageTest {
 
     private static final String API_1 = "service1";

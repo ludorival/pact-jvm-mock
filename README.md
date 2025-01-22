@@ -95,9 +95,9 @@ Then, to start writing contract,
 you have to extend your test classes where you need to record the interactions with your providers. Like that
 
 ```kotlin
-import io.github.ludorival.pactjvm.mock.mockk.PactConsumer
+import io.github.ludorival.pactjvm.mock.mockk.EnablePactMock
 
-@PactConsumer(MyServicePactConfig::class)
+@EnablePactMock(MyServicePactConfig::class)
 class ShoppingServiceClientTest 
 ```
 
@@ -190,10 +190,10 @@ uponReceiving(restTemplate.exchange(
     .thenReturn(ResponseEntity.ok(Arrays.asList(USER_1, USER_2)));
 ```
 
-Note: Don't forget to configure your test class with the `@PactConsumer` annotation:
+Note: Don't forget to configure your test class with the `@EnablePactMock` annotation:
 
 ```java
-@PactConsumer(MyPactConfiguration.class)
+@EnablePactMock(MyPactConfiguration.class)
 public class MyTest {
     public static class MyPactConfiguration extends PactConfiguration {
         
@@ -293,27 +293,51 @@ object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateM
 
 ### Make your contract deterministic
 
-To make your contract deterministic, you will need to provide a custom serializer for the type you want to be invariant.
+When working with Pact contracts, it's important to ensure that your tests are deterministic - meaning they produce the same output every time they run. This is particularly important when dealing with dynamic data like timestamps, UUIDs, or any other values that change between test runs.
 
-For example, let's say you have a date which will be generated at each test, you can pass a custom value
-for `determineConsumerFromUrl`
+There are two ways to make your contract deterministic:
 
+1. **Enable deterministic mode globally**
+
+Set `isDeterministic = true` in your `PactConfiguration`. When enabled, if the same interaction is recorded with different responses, the test will fail with an `IllegalStateException`:
 
 ```kotlin
-// MyServicePactConfig.kt
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter({providerName ->
-    Jackson2ObjectMapperBuilder()
-        .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-        .serializerByType(
-            LocalDate::class.java,
-            serializerAsDefault<LocalDate>("2023-01-01")
-        ).build()
-})) {
-
-    override fun isDeterministic() = true // <-- force to be deterministic
-} 
+object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
+    override fun isDeterministic() = true // Enable deterministic mode
+}
 ```
 
+2. **Handle dynamic values with custom serializers**
+
+For specific fields that are naturally dynamic (like dates or IDs), you can provide custom serializers to ensure consistent values:
+
+```kotlin
+object MyServicePactConfig : PactConfiguration(
+    "my-service",
+    SpringRestTemplateMockAdapter({ providerName ->
+        Jackson2ObjectMapperBuilder()
+            .serializerByType(
+                LocalDateTime::class.java,
+                serializerAsDefault<LocalDateTime>("2023-01-01T00:00:00")
+            )
+            .serializerByType(
+                UUID::class.java,
+                serializerAsDefault<UUID>("123e4567-e89b-12d3-a456-426614174000")
+            )
+            .build()
+    })
+) {
+    override fun isDeterministic() = true
+}
+```
+
+When deterministic mode is enabled:
+- The same interaction must always return the same response
+- If an interaction changes, the test will fail with a detailed error message showing the differences
+- You must provide unique descriptions for different interactions using `withDescription`
+- Dynamic values should be handled with custom serializers
+
+This ensures your contract tests are reliable and reproducible across different test runs.
 
 ### Change the pact directory
 

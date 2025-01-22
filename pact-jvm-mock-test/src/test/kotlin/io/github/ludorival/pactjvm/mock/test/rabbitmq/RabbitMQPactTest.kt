@@ -3,7 +3,7 @@ package io.github.ludorival.pactjvm.mock.test.rabbitmq
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mock.PactConsumer
+import io.github.ludorival.pactjvm.mock.EnablePactMock
 import io.github.ludorival.pactjvm.mock.clearPact
 import io.github.ludorival.pactjvm.mock.getCurrentPact
 import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
@@ -23,7 +23,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate
 import java.time.LocalDate
 import au.com.dius.pact.core.model.messaging.MessagePact
 
-@PactConsumer(RabbitMQPactV4Config::class)
+@EnablePactMock(RabbitMQPactV4Config::class)
 class RabbitMQPactTest {
 
     private val rabbitTemplate = mockk<RabbitTemplate>()

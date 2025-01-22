@@ -7,7 +7,7 @@ import au.com.dius.pact.core.model.matchingrules.TypeMatcher
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mock.PactConsumer
+import io.github.ludorival.pactjvm.mock.EnablePactMock
 import io.github.ludorival.pactjvm.mock.anError
 import io.github.ludorival.pactjvm.mock.clearPact
 import io.github.ludorival.pactjvm.mock.getCurrentPact
@@ -22,7 +22,7 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.nio.charset.Charset
 
-@PactConsumer(NonDeterministicPact::class)
+@EnablePactMock(NonDeterministicPact::class)
 class MockkCoverageTest {
 
     val restTemplate = mockk<RestTemplate>()

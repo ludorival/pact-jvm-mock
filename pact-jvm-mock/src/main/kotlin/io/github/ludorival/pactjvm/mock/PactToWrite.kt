@@ -101,21 +101,9 @@ internal data class PactToWrite(
         val diffs = diffMatchPatch.diffMain(old.toPrettyJson(), current.toPrettyJson())
         return """The interaction with description "${current.description}" has changed
                     |The changes are:
-                    |${toReadableConsoleMessage(current.description, diffs)}
+                    |${toReadableConsoleMessage(diffs)}
                     |The Pact contract should be deterministic.
-                    |Possible solutions:
-                    |1) Force the Pact to be deterministic
-                    |PactConfiguration {
-                    |  consumer = "..."
-                    |  addAdapter(...)
-                    |  isDeterministic = true // <-- set to true 
-                    |}
-                    |2) Set a description for each conflicted interaction
-                    |every { ... } willRespondWith {
-                    |   options {
-                    |    description = "This is different call"
-                    |   }
-                    |}
+                    |See https://github.com/ludorival/pact-jvm-mock?tab=readme-ov-file#make-your-contract-deterministic for more details.
                     |====================================================
                 """.trimMargin()
     }
@@ -128,14 +116,11 @@ internal data class PactToWrite(
         }
 
     private fun toReadableConsoleMessage(
-        description: String,
         diffs: LinkedList<DiffMatchPatch.Diff>
     ): String {
         val sb =
             StringBuilder(
-                "${red("Received interaction")} does not match ${
-                    green("captured interaction: \"$description\"")
-                }\n\n${
+                "\n${
                     green("-Captured")
                 }\n${red("+Received")}\n\n"
             )
@@ -162,7 +147,7 @@ internal data class PactToWrite(
 
 
     private fun Interaction.toPrettyJson(): String =
-        Json.prettyPrint(this)
+        Json.prettyPrint(toMap(version))
 
     companion object {
         private const val RESET = "\u001B[0m"

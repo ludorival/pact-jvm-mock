@@ -1,0 +1,29 @@
+{
+  "consumer": {
+    "name": "shopping-list"
+  },
+  "interactions": [
+    {
+      "description": "should throw error when recording same interaction twice",
+      "request": {
+        "method": "GET",
+        "path": "/provider/test"
+      },
+      "response": {
+        "body": "Hello World",
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "provider"
+  }
+}
