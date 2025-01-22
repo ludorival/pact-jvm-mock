@@ -36,8 +36,12 @@ class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterEachCallback, 
     }
 
     override fun beforeEach(context: ExtensionContext) {
-        // Only set the current test name
-        PactMock.currentTestName = context.displayName.substringBeforeLast("(")
+        // Set the current test info
+        PactMock.currentTestInfo = TestInfo(
+            testFileName = context.requiredTestClass.simpleName,
+            methodName = context.requiredTestMethod.name,
+            displayName = context.displayName.substringBeforeLast("(")
+        )
     }
 
     private fun KClass<*>.getConfiguration(): PactConfiguration? {
@@ -56,7 +60,7 @@ class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterEachCallback, 
     }
 
     override fun afterEach(context: ExtensionContext) {
-        PactMock.currentTestName = null
+        PactMock.currentTestInfo = null
     }
 
     override fun afterAll(context: ExtensionContext) {

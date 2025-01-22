@@ -3,6 +3,12 @@ package io.github.ludorival.pactjvm.mock
 import au.com.dius.pact.core.model.Interaction
 import java.util.concurrent.ConcurrentHashMap
 
+data class TestInfo(
+    val testFileName: String,
+    val methodName: String,
+    val displayName: String
+)
+
 internal object PactMock : CallInterceptor {
 
     private var pactConfiguration: PactConfiguration = object : PactConfiguration() {}
@@ -11,7 +17,7 @@ internal object PactMock : CallInterceptor {
         this.pactConfiguration = config
     }
 
-    internal var currentTestName: String? = null
+    internal var currentTestInfo: TestInfo? = null
 
     private val pacts: ConcurrentHashMap<String, PactToWrite> = ConcurrentHashMap()
 
@@ -27,7 +33,6 @@ internal object PactMock : CallInterceptor {
     }
 
     fun getCurrentPact(consumerName: String, providerName: String) = pacts[getId(consumerName, providerName)]?.pact
-
 
     private fun getId(consumerName: String, providerName: String) = "${consumerName}-$providerName-${pactConfiguration.isDeterministic()}"
 
@@ -46,8 +51,8 @@ internal object PactMock : CallInterceptor {
 
     override fun <T> interceptAndGet(interactionBuilder: InteractionBuilder<T>): T {
         val call = interactionBuilder.call
-        if (currentTestName == null) {
-            LOGGER.debug { "No test name set, skipping pact recording" }
+        if (currentTestInfo == null) {
+            LOGGER.debug { "No test info set, skipping pact recording" }
             return call.result.getOrThrow()
         }
         val adapter = pactConfiguration.getAdapterFor(call) ?: run {
