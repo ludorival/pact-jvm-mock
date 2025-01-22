@@ -1,12 +1,13 @@
 package io.github.ludorival.pactjvm.mock.test
 
 import au.com.dius.pact.core.model.RequestResponseInteraction
+import au.com.dius.pact.core.model.RequestResponsePact
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mock.PactConsumer
+import io.github.ludorival.pactjvm.mock.EnablePactMock
 import io.github.ludorival.pactjvm.mock.anError
 import io.github.ludorival.pactjvm.mock.clearPact
 import io.github.ludorival.pactjvm.mock.getCurrentPact
@@ -21,14 +22,14 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import java.nio.charset.Charset
 
-@PactConsumer(NonDeterministicPact::class)
+@EnablePactMock(NonDeterministicPact::class)
 class MockkCoverageTest {
 
     val restTemplate = mockk<RestTemplate>()
 
     @BeforeEach
     fun setUp() {
-        clearPact(API_1)
+        clearPact("shopping-list", API_1)
     }
 
     @Test
@@ -40,7 +41,7 @@ class MockkCoverageTest {
         } `when`{
             restTemplate.getForEntity(TEST_API_1_URL, String::class.java)
         } then {
-            with(getCurrentPact(API_1)!!) {
+            with(currentPact()) {
                 assertEquals(1, interactions.size)
             }
         }
@@ -60,7 +61,7 @@ class MockkCoverageTest {
         } `when` {
             restTemplate.getForEntity("$TEST_API_1_URL/users/123", String::class.java)
         } then {
-            with(getCurrentPact(API_1)!!) {
+            with(currentPact()) {
                 assertEquals(1, interactions.size)
                 with(interactions.first()) {
                     assertEquals("Get user profile", description)
@@ -97,7 +98,7 @@ class MockkCoverageTest {
             )
             restTemplate.postForEntity("$TEST_API_1_URL/users", request, String::class.java)
         } then {
-            with(getCurrentPact(API_1)!!) {
+            with(currentPact()) {
                 assertEquals(1, interactions.size)
                 with(interactions.first() as RequestResponseInteraction) {
                     assertNotNull(request.matchingRules)
@@ -122,7 +123,7 @@ class MockkCoverageTest {
             restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java)
             restTemplate.getForEntity("$TEST_API_1_URL/data", String::class.java)
         } then {
-            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+            with(currentPact().interactions.filterIsInstance<RequestResponseInteraction>()) {
                 assertEquals(3, size)
                 assertEquals(200, this[0].response.status)
                 assertEquals(200, this[1].response.status)
@@ -142,7 +143,7 @@ class MockkCoverageTest {
                 restTemplate.getForEntity("$TEST_API_1_URL/error", String::class.java)
             }
         } then {
-            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+            with(currentPact().interactions.filterIsInstance<RequestResponseInteraction>()) {
                 assertEquals(1, size)
                 assertEquals(500, this[0].response.status)
                 assertEquals("Service unavailable", this[0].response.body.valueAsString())
@@ -161,7 +162,7 @@ class MockkCoverageTest {
                 restTemplate.getForEntity("$TEST_API_1_URL/error", String::class.java)
             }
         } then {
-            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+            with(currentPact().interactions.filterIsInstance<RequestResponseInteraction>()) {
                 assertEquals(1, size)
                 assertEquals(400, this[0].response.status)
                 assertTrue(this[0].response.body.contentType.isJson())
@@ -194,7 +195,7 @@ class MockkCoverageTest {
 
             responses.add(restTemplate.getForEntity("$TEST_API_1_URL/chain", String::class.java))
         } then {
-            with(getCurrentPact(API_1)!!.interactions.filterIsInstance<RequestResponseInteraction>()) {
+            with(currentPact().interactions.filterIsInstance<RequestResponseInteraction>()) {
                 assertEquals(4, size)
                 with(this[0]) {
                     assertEquals("Initial successful response", description)
@@ -254,7 +255,7 @@ class MockkCoverageTest {
             )
             restTemplate.postForEntity("$TEST_API_1_URL/users", request, String::class.java)
         } then {
-            with(getCurrentPact(API_1)!!) {
+            with(currentPact()) {
                 assertEquals(1, interactions.size)
                 with(interactions.first()) {
                     assertEquals("POST request to http://localhost:8080/service1/api/v1/users with 2 parameters", description)
@@ -282,12 +283,21 @@ class MockkCoverageTest {
                 restTemplate.getForEntity("$TEST_API_1_URL/unsupported-error", String::class.java)
             }
         } then {
-            assertNull(getCurrentPact(API_1))
+            assertNull(currentPactOrNull())
         }
     }
 
     companion object {
         val API_1 = "service1"
         val TEST_API_1_URL = "http://localhost:8080/$API_1/api/v1"
+
+        private fun currentPact(): RequestResponsePact {
+            return getCurrentPact<RequestResponsePact>("shopping-list", API_1) 
+                ?: throw AssertionError("Expected pact to be non-null")
+        }
+
+        private fun currentPactOrNull(): RequestResponsePact? {
+            return getCurrentPact<RequestResponsePact>("shopping-list", API_1)
+        }
     }
 }

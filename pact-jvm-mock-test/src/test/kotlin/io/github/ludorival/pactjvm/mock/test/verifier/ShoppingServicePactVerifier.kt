@@ -57,7 +57,7 @@ class ShoppingServicePactVerifier {
     }
 
     @State("the shopping list is empty")
-    fun setupEmptyShoppingList(params: Map<String, Any>) {
+    fun setupEmptyShoppingList() {
         restController.clearAll()
     }
 

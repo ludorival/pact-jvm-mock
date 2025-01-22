@@ -1,0 +1,56 @@
+{
+  "consumer": {
+    "name": "order-service"
+  },
+  "interactions": [
+    {
+      "contents": {
+        "content": {
+          "items": [
+            {
+              "name": "Apple",
+              "quantity": 2
+            },
+            {
+              "name": "Banana",
+              "quantity": 3
+            }
+          ],
+          "shopping_list_id": "123",
+          "user_id": 456
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "Shopping list ordered message",
+      "key": "d1b4c75d",
+      "metadata": {
+        "exchange": "shopping.topic",
+        "routing_key": "shopping.list.ordered"
+      },
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "shopping list ordered",
+          "params": {
+            "exchange": "shopping.topic",
+            "routing_key": "shopping.list.ordered",
+            "shopping_list_id": "123"
+          }
+        }
+      ],
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "shopping-list"
+  }
+}

@@ -1,6 +1,8 @@
 package io.github.ludorival.pactjvm.mock
 
 import au.com.dius.pact.core.model.*
+import au.com.dius.pact.core.model.messaging.Message
+import au.com.dius.pact.core.model.messaging.MessagePact
 import au.com.dius.pact.core.support.Json
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch
 import java.io.File
@@ -9,20 +11,20 @@ import java.util.concurrent.ConcurrentHashMap
 
 internal data class PactToWrite(
     val consumer: String,
-    val providerMetaData: ProviderMetaData,
+    val provider: String,
+    val version: PactSpecVersion,
     private val isDeterministic: Boolean = false,
     private val outputDirectory: String
 ) {
 
     constructor(
+        consumerName: String,
         providerName: String,
         pactConfiguration: PactConfiguration
     ) : this(
-        pactConfiguration.consumer,
-        ProviderMetaData(
-            providerName,
-            pactConfiguration.getPactMetaData()
-        ),
+        consumerName,
+        providerName,
+        pactConfiguration.getPactVersion(),
         pactConfiguration.isDeterministic(),
         pactConfiguration.getPactDirectory()
     )
@@ -31,7 +33,7 @@ internal data class PactToWrite(
         if (consumer.isBlank()) error("The consumer should not be empty")
     }
 
-    val id = "${consumer}-${providerMetaData.name}-${isDeterministic}"
+    val id = "${consumer}-${provider}-${isDeterministic}"
 
     private val interactionsByDescription = ConcurrentHashMap<String, Interaction>()
 
@@ -42,7 +44,8 @@ internal data class PactToWrite(
     val pact: Pact
         get() = createPact(
             consumer,
-            providerMetaData,
+            provider,
+            version,
             descriptions.map { interactionsByDescription.getValue(it) }
         )
 
@@ -76,36 +79,31 @@ internal data class PactToWrite(
 
     private fun createPact(
         consumer: String,
-        providerMetaData: ProviderMetaData,
+        provider: String,
+        version: PactSpecVersion,
         interactions: List<Interaction>
-    ): Pact =
+    ): Pact = if (interactions.firstOrNull() is Message) MessagePact(
+        consumer = Consumer(consumer),
+        provider = Provider(provider),
+        messages = interactions.mapNotNull { it as? Message }.toMutableList(),
+        source = UnknownPactSource,
+        metadata = BasePact.metaData(null, version)
+    ) else
         RequestResponsePact(
             consumer = Consumer(consumer),
-            provider = Provider(providerMetaData.name),
+            provider = Provider(provider),
             interactions = interactions.toMutableList(),
             source = UnknownPactSource,
-            metadata = BasePact.metaData(null, providerMetaData.pactMetaData)
+            metadata = BasePact.metaData(null, version)
         )
 
     private fun printDifferences(old: Interaction, current: Interaction): String {
         val diffs = diffMatchPatch.diffMain(old.toPrettyJson(), current.toPrettyJson())
         return """The interaction with description "${current.description}" has changed
                     |The changes are:
-                    |${toReadableConsoleMessage(current.description, diffs)}
+                    |${toReadableConsoleMessage(diffs)}
                     |The Pact contract should be deterministic.
-                    |Possible solutions:
-                    |1) Force the Pact to be deterministic
-                    |PactConfiguration {
-                    |  consumer = "..."
-                    |  addAdapter(...)
-                    |  isDeterministic = true // <-- set to true 
-                    |}
-                    |2) Set a description for each conflicted interaction
-                    |every { ... } willRespondWith {
-                    |   options {
-                    |    description = "This is different call"
-                    |   }
-                    |}
+                    |See https://github.com/ludorival/pact-jvm-mock?tab=readme-ov-file#make-your-contract-deterministic for more details.
                     |====================================================
                 """.trimMargin()
     }
@@ -118,14 +116,11 @@ internal data class PactToWrite(
         }
 
     private fun toReadableConsoleMessage(
-        description: String,
         diffs: LinkedList<DiffMatchPatch.Diff>
     ): String {
         val sb =
             StringBuilder(
-                "${red("Received interaction")} does not match ${
-                    green("captured interaction: \"$description\"")
-                }\n\n${
+                "\n${
                     green("-Captured")
                 }\n${red("+Received")}\n\n"
             )
@@ -136,14 +131,14 @@ internal data class PactToWrite(
     }
 
     private val pactFile
-        get() = "${consumer}-${providerMetaData.name}.json"
+        get() = "${consumer}-${provider}.json"
 
     internal fun write() {
         if (descriptions.isEmpty()) return
         val previousProperty = System.getProperty("pact.writer.overwrite") ?: "false"
         System.setProperty("pact.writer.overwrite", "true")
         val pactDirectory = File(outputDirectory, pactFile).toString()
-        val result = pact.write(outputDirectory, providerMetaData.pactMetaData)
+        val result = pact.write(outputDirectory, version)
         System.setProperty("pact.writer.overwrite", previousProperty)
         if (result.errorValue() == null)
             LOGGER.info {  "[$id] Successfully written pact to $pactDirectory" }
@@ -152,7 +147,7 @@ internal data class PactToWrite(
 
 
     private fun Interaction.toPrettyJson(): String =
-        Json.prettyPrint(this)
+        Json.prettyPrint(toMap(version))
 
     companion object {
         private const val RESET = "\u001B[0m"

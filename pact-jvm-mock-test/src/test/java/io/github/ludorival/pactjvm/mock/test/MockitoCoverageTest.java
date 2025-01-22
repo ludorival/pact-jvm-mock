@@ -1,13 +1,12 @@
 package io.github.ludorival.pactjvm.mock.test;
 
-import au.com.dius.pact.core.model.Interaction;
 import au.com.dius.pact.core.model.Pact;
+import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.RequestResponseInteraction;
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher;
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher;
 import io.github.ludorival.pactjvm.mock.*;
 import io.github.ludorival.pactjvm.mock.mockito.PactMockito;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -25,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
-@PactConsumer(NonDeterministicPact.class)
+@EnablePactMock(NonDeterministicPact.class)
 public class MockitoCoverageTest {
 
     private static final String API_1 = "service1";
@@ -37,7 +36,7 @@ public class MockitoCoverageTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        UtilsKt.clearPact(API_1);
+        UtilsKt.clearPact("shopping-list", API_1);
     }
 
     @Test
@@ -50,7 +49,7 @@ public class MockitoCoverageTest {
         restTemplate.getForEntity(TEST_API_1_URL, String.class);
 
         // then
-        Pact pact = UtilsKt.getCurrentPact(API_1);
+        Pact pact = currentPact();
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
     }
@@ -67,7 +66,7 @@ public class MockitoCoverageTest {
         restTemplate.getForEntity(TEST_API_1_URL + "/users/123", String.class);
 
         // then
-        Pact pact = UtilsKt.getCurrentPact(API_1);
+        Pact pact = currentPact();
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
         RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
@@ -99,7 +98,7 @@ public class MockitoCoverageTest {
         restTemplate.postForEntity(TEST_API_1_URL + "/users", request, String.class);
 
         // then
-        Pact pact = UtilsKt.getCurrentPact(API_1);
+        Pact pact = currentPact();
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
         RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
@@ -127,7 +126,7 @@ public class MockitoCoverageTest {
 
 
         // Verify pact interactions
-        Pact pact = UtilsKt.getCurrentPact(API_1);
+        Pact pact = currentPact();
         assertNotNull(pact);
         assertEquals(3, pact.getInteractions().size());
         
@@ -162,7 +161,7 @@ public class MockitoCoverageTest {
         );
 
         // then
-        Pact pact = UtilsKt.getCurrentPact(API_1);
+        Pact pact = currentPact();
         assertNotNull(pact);
         assertEquals(1, pact.getInteractions().size());
         RequestResponseInteraction interaction = (RequestResponseInteraction) pact.getInteractions().get(0);
@@ -195,7 +194,7 @@ public class MockitoCoverageTest {
         responses.add(restTemplate.getForEntity(TEST_API_1_URL + "/chain", String.class));
 
         // then
-        Pact pact = UtilsKt.getCurrentPact(API_1);
+        Pact pact = currentPact();
         assertNotNull(pact);
         List<RequestResponseInteraction> interactions = pact.getInteractions().stream().map(interaction -> (RequestResponseInteraction)interaction).toList();
         assertEquals(4, interactions.size());
@@ -219,5 +218,10 @@ public class MockitoCoverageTest {
         assertEquals("Not found response", interactions.get(3).getDescription());
         assertEquals(404, interactions.get(3).getResponse().getStatus());
         assertTrue(interactions.get(3).getResponse().getBody().isNotPresent());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static RequestResponsePact currentPact() {
+        return UtilsKt.<RequestResponsePact>getCurrentPact("shopping-list", API_1);
     }
 } 

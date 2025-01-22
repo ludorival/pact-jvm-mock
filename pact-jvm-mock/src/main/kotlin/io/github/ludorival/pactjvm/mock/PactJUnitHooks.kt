@@ -25,7 +25,7 @@ class PactJUnitHooks: BeforeAllCallback, BeforeEachCallback, AfterEachCallback, 
     }
 
     override fun beforeAll(context: ExtensionContext) {
-        val annotation = context.requiredTestClass.getAnnotation(PactConsumer::class.java) 
+        val annotation = context.requiredTestClass.getAnnotation(EnablePactMock::class.java) 
             ?: error("PactConsumer annotation is expected")
         val configClass = annotation.value
         

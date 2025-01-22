@@ -13,7 +13,7 @@ abstract class PactMockAdapter<I: Interaction> {
         providerName: String
     ): I
 
-    abstract fun determineProvider(call: Call<*>): String
+    abstract fun determineConsumerAndProvider(call: Call<*>): Pair<String, String>
 
     open fun <T> returnsResult(result: Result<T>) = result.getOrThrow()
 

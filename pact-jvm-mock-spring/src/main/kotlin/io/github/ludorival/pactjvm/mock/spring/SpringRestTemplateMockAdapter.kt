@@ -15,9 +15,10 @@ import io.github.ludorival.pactjvm.mock.*
 import org.springframework.http.*
 
 @Suppress("TooManyFunctions")
-class SpringRestTemplateMockAdapter(private val objectMapperByProvider: (String) -> ObjectMapper? = { null }) :
+open class SpringRestTemplateMockAdapter(private val consumer: String, private val objectMapperByProvider: (String) -> ObjectMapper? = { null }) :
     PactMockAdapter<RequestResponseInteraction>() {
 
+    constructor(consumer: String) : this(consumer, { null })
     private val defaultObjectMapper = ObjectMapper().apply {
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
@@ -73,9 +74,9 @@ class SpringRestTemplateMockAdapter(private val objectMapperByProvider: (String)
         }
     }
 
-    override fun determineProvider(call: Call<*>): String {
+    override fun determineConsumerAndProvider(call: Call<*>): Pair<String, String> {
         val uri = call.getUri()
-        return uri.path.split("/").first { it.isNotBlank() }
+        return Pair(consumer, uri.path.split("/").first { it.isNotBlank() })
     }
 
     private fun <T> serializeBody(

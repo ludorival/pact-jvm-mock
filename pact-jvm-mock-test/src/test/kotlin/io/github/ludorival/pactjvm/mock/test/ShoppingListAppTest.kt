@@ -3,7 +3,7 @@ package io.github.ludorival.pactjvm.mock.test
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
-import io.github.ludorival.pactjvm.mock.PactConsumer
+import io.github.ludorival.pactjvm.mock.EnablePactMock
 import io.github.ludorival.pactjvm.mock.test.NonDeterministicPact
 import io.github.ludorival.pactjvm.mock.test.PREFERRED_SHOPPING_ID
 import io.github.ludorival.pactjvm.mock.test.contracts.willCreateShoppingList
@@ -32,7 +32,7 @@ import org.springframework.web.client.RestTemplate
 import java.net.URI
 import java.time.LocalDateTime
 
-@PactConsumer(NonDeterministicPact::class)
+@EnablePactMock(NonDeterministicPact::class)
 open class ShoppingListAppTest {
 
     @MockK

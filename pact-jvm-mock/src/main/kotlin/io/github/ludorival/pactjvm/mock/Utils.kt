@@ -8,12 +8,13 @@ fun RequestResponseInteraction.getConsumerName() = request.path.split("/").first
 
 fun <E: Any> anError(error: E) = PactMockResponseError(error)
 
-fun getCurrentPact(providerName: String): RequestResponsePact? {
-    return PactMock.getCurrentPact(providerName) as? RequestResponsePact
+fun <P: BasePact> getCurrentPact(consumerName: String, providerName: String): P? {
+    return PactMock.getCurrentPact(consumerName, providerName) as? P
 }
 
-fun clearPact(providerName: String) {
-    PactMock.clearPact(providerName)
+
+fun clearPact(consumerName: String, providerName: String) {
+    PactMock.clearPact(consumerName, providerName)
 }
 typealias InteractionHandler<R> = InteractionBuilder<*>.() -> R
 
