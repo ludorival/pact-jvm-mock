@@ -303,8 +303,9 @@ class MockkCoverageTest {
                 assertEquals(1, interactions.size)
                 with(interactions.first()) {
                     assertNotNull(comments)
-                    val testName = comments["testname"] as JsonValue
-                    assertEquals("should contain test name in interaction comments", testName.asString())
+                    assertEquals("should contain test name in interaction comments", (comments["testname"] as JsonValue).asString())
+                    assertEquals("MockkCoverageTest", (comments["testfile"] as JsonValue).asString())
+                    assertEquals("should contain test name in interaction comments", (comments["testmethod"] as JsonValue).asString())
                 }
             }
         }

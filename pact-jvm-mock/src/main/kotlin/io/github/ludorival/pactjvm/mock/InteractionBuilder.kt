@@ -9,7 +9,7 @@ class InteractionBuilder<T>() {
 
     lateinit var call: Call<T>
 
-    private var descriptionHandler: InteractionHandler<String?> = { PactMock.currentTestName }
+    private var descriptionHandler: InteractionHandler<String?> = { PactMock.currentTestInfo?.displayName }
 
     private val requestMatchingRulesBuilder: MatchingRulesBuilder = MatchingRulesBuilder()
     private val responseMatchingRulesBuilder: MatchingRulesBuilder = MatchingRulesBuilder()
@@ -35,12 +35,16 @@ class InteractionBuilder<T>() {
         val providerStateBuilder = ProviderStateBuilder(call)
         providerStatesHandler?.invoke(providerStateBuilder)
         val draftInteraction = DraftInteraction(
-            descriptionHandler(this) ?: PactMock.currentTestName ?: error("A description is required"),
+            descriptionHandler(this) ?: PactMock.currentTestInfo?.displayName ?: error("A description is required"),
             providerStateBuilder.get(), requestMatchingRulesBuilder.build(), requestMatchingRulesBuilder.build()
         )
         return generator(draftInteraction).apply {
-            PactMock.currentTestName?.let { testName ->
-                comments["testname"] = JsonValue.StringValue(testName)
+            PactMock.currentTestInfo?.let { testInfo ->
+                comments.putAll(mapOf(
+                    "testname" to JsonValue.StringValue(testInfo.displayName),
+                    "testfile" to JsonValue.StringValue(testInfo.testFileName),
+                    "testmethod" to JsonValue.StringValue(testInfo.methodName)
+                ))
             }
         }
     }

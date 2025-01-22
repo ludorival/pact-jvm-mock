@@ -4,6 +4,11 @@
   },
   "interactions": [
     {
+      "comments": {
+        "testfile": "RabbitMQPactTest",
+        "testmethod": "test publisher sends shopping list as order message",
+        "testname": "test publisher sends shopping list as order message"
+      },
       "contents": {
         "content": {
           "items": [
