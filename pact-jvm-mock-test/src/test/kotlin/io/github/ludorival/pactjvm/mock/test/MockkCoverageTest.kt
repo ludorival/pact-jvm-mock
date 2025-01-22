@@ -1,9 +1,12 @@
 package io.github.ludorival.pactjvm.mock.test
 
+import au.com.dius.pact.core.model.Consumer
+import au.com.dius.pact.core.model.Provider
 import au.com.dius.pact.core.model.RequestResponseInteraction
 import au.com.dius.pact.core.model.RequestResponsePact
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher
+import au.com.dius.pact.core.support.json.JsonValue
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
 import io.github.ludorival.kotlintdd.`when`
@@ -284,6 +287,26 @@ class MockkCoverageTest {
             }
         } then {
             assertNull(currentPactOrNull())
+        }
+    }
+
+    @Test
+    fun `should contain test name in interaction comments`() {
+        given {
+            uponReceiving {
+                restTemplate.getForEntity(any<String>(), eq(String::class.java))
+            } returns ResponseEntity.ok("Hello World")
+        } `when` {
+            restTemplate.getForEntity(TEST_API_1_URL, String::class.java)
+        } then {
+            with(currentPact()) {
+                assertEquals(1, interactions.size)
+                with(interactions.first()) {
+                    assertNotNull(comments)
+                    val testName = comments["testname"] as JsonValue
+                    assertEquals("should contain test name in interaction comments", testName.asString())
+                }
+            }
         }
     }
 

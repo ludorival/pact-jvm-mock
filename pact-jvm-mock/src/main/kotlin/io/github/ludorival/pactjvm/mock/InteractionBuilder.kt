@@ -2,6 +2,7 @@ package io.github.ludorival.pactjvm.mock
 
 import au.com.dius.pact.core.model.*
 import au.com.dius.pact.core.model.matchingrules.MatchingRules
+import au.com.dius.pact.core.support.json.JsonValue
 
 
 class InteractionBuilder<T>() {
@@ -37,8 +38,11 @@ class InteractionBuilder<T>() {
             descriptionHandler(this) ?: PactMock.currentTestName ?: error("A description is required"),
             providerStateBuilder.get(), requestMatchingRulesBuilder.build(), requestMatchingRulesBuilder.build()
         )
-        return generator(draftInteraction)
-
+        return generator(draftInteraction).apply {
+            PactMock.currentTestName?.let { testName ->
+                comments["testname"] = JsonValue.StringValue(testName)
+            }
+        }
     }
 
 
