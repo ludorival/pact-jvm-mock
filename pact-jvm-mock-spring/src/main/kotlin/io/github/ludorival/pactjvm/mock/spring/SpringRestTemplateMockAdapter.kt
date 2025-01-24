@@ -175,13 +175,12 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
             val responseEntity = exception.response as ResponseEntity<Any>
             val statusCode: HttpStatus =
                 responseEntity.statusCode as? HttpStatus ?: HttpStatus.valueOf(responseEntity.statusCode.value())
-            val body = responseEntity.body?.toString()
-            val bodyBytes = body?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0)
+            val optionalBody = serializeBody(responseEntity.body, responseEntity.headers, defaultObjectMapper)
             throw HttpClientErrorException.create(
                 statusCode,
                 statusCode.reasonPhrase,
                 responseEntity.headers,
-                bodyBytes,
+                optionalBody.value ?: ByteArray(0),
                 StandardCharsets.UTF_8
             )
         }
@@ -207,7 +206,5 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
         val firstArg = args.first()
         return if (firstArg is RequestEntity<*>) firstArg as? RequestEntity<Any> else null
     }
-
-    private fun ObjectMapper.toJson(value: Any?): Map<String, Any?>? = value?.let { valueToTree(it) }
 
 }

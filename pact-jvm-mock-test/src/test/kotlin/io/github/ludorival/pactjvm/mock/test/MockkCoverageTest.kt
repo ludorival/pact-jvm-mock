@@ -15,6 +15,7 @@ import io.github.ludorival.pactjvm.mock.anError
 import io.github.ludorival.pactjvm.mock.clearPact
 import io.github.ludorival.pactjvm.mock.getCurrentPact
 import io.github.ludorival.pactjvm.mock.mockk.uponReceiving
+import io.github.ludorival.pactjvm.mock.PactMockResponseError
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -311,9 +312,38 @@ class MockkCoverageTest {
         }
     }
 
+    @Test
+    fun `should handle PactMockResponseError with custom error response`() {
+        given {
+            uponReceiving {
+                restTemplate.getForEntity(any<String>(), eq(String::class.java))
+            }.throws(PactMockResponseError(ResponseEntity.badRequest().body(
+                ErrorNode("VALIDATION_FAILURE", "This is a validation failure")
+            )))
+        } `when` {
+            assertThrows<HttpClientErrorException> {
+                restTemplate.getForEntity("$TEST_API_1_URL/error", String::class.java)
+            }
+        } then { failure ->
+            val expectedJson = """{"error":"VALIDATION_FAILURE","error_description":"This is a validation failure"}"""
+            assertEquals(expectedJson, failure.responseBodyAsString)
+            with(currentPact().interactions.filterIsInstance<RequestResponseInteraction>()) {
+                assertEquals(1, size)
+                assertEquals(400, this[0].response.status)
+                assertTrue(this[0].response.body.contentType.isJson())
+                assertEquals(expectedJson, this[0].response.body.valueAsString())
+            }
+        }
+    }
+
     companion object {
         val API_1 = "service1"
         val TEST_API_1_URL = "http://localhost:8080/$API_1/api/v1"
+
+        data class ErrorNode(
+            val error: String,
+            val error_description: String
+        )
 
         private fun currentPact(): RequestResponsePact {
             return getCurrentPact<RequestResponsePact>("shopping-list", API_1) 
