@@ -13,5 +13,5 @@ import io.github.ludorival.pactjvm.mock.spring.serializerAsDefault
 import io.github.ludorival.pactjvm.mock.Call
 
 object NonDeterministicPact : PactConfiguration(
-    SpringRestTemplateMockAdapter("shopping-list", ObjectMapperConfig::by)
+    SpringRestTemplateMockAdapter("shopping-webapp", ObjectMapperConfig::by)
 )

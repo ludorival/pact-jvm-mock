@@ -36,7 +36,7 @@ public class MockitoCoverageTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        UtilsKt.clearPact("shopping-list", API_1);
+        UtilsKt.clearPact("shopping-webapp", API_1);
     }
 
     @Test
@@ -222,6 +222,6 @@ public class MockitoCoverageTest {
 
     @SuppressWarnings("unchecked")
     private static RequestResponsePact currentPact() {
-        return UtilsKt.<RequestResponsePact>getCurrentPact("shopping-list", API_1);
+        return UtilsKt.<RequestResponsePact>getCurrentPact("shopping-webapp", API_1);
     }
 } 

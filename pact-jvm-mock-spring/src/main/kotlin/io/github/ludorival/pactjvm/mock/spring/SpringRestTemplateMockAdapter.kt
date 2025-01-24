@@ -169,13 +169,14 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
     private fun String.asJson(): Any? = runCatching { defaultObjectMapper.readValue(this, Any::class.java) }.getOrNull()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> returnsResult(result: Result<T>): T {
+    override fun <T> returnsResult(result: Result<T>, providerName: String): T {
         val exception = result.exceptionOrNull()
+        val objectMapper = objectMapperByProvider.invoke(providerName) ?: this.defaultObjectMapper
         if (exception is PactMockResponseError) {
             val responseEntity = exception.response as ResponseEntity<Any>
             val statusCode: HttpStatus =
                 responseEntity.statusCode as? HttpStatus ?: HttpStatus.valueOf(responseEntity.statusCode.value())
-            val optionalBody = serializeBody(responseEntity.body, responseEntity.headers, defaultObjectMapper)
+            val optionalBody = serializeBody(responseEntity.body, responseEntity.headers, objectMapper)
             throw HttpClientErrorException.create(
                 statusCode,
                 statusCode.reasonPhrase,
@@ -184,7 +185,7 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
                 StandardCharsets.UTF_8
             )
         }
-        return super.returnsResult(result)
+        return super.returnsResult(result, providerName)
     }
 
     private fun ResponseEntity<Any>.asResponse(): Response {

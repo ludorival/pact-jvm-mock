@@ -25,7 +25,7 @@ class DeterministicPactTest {
 
     companion object {
         private const val TEST_URL = "http://localhost:8080/provider/test"
-        private const val CONSUMER = "shopping-list"
+        private const val CONSUMER = "shopping-webapp"
         private const val PROVIDER = "provider"
         @JvmStatic
         @BeforeAll

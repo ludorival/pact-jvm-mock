@@ -3,6 +3,7 @@ package io.github.ludorival.pactjvm.mock.test.verifier
 import au.com.dius.pact.provider.PactVerifyProvider
 import au.com.dius.pact.provider.junit5.MessageTestTarget
 import au.com.dius.pact.provider.junit5.PactVerificationContext
+import au.com.dius.pact.provider.junitsupport.Consumer
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder
@@ -22,7 +23,8 @@ import java.time.LocalDate
 @ActiveProfiles("order-service")
 @Tag("contract-test")
 @SpringBootTest(classes = [io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingServiceApplication::class])
-@Provider("shopping-list")
+@Provider("shopping-service")
+@Consumer("order-service")
 @PactFolder("pacts")
 open class RabbitMQPactVerifier {
 

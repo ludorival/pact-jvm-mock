@@ -64,7 +64,7 @@ internal object PactMock : CallInterceptor {
             .onFailure { LOGGER.warn { "Failed to build interaction: ${it.message}" } }
             .getOrNull()
             ?.let { addInteraction(it, consumerName, providerName) }
-        return adapter.returnsResult(call.result)
+        return adapter.returnsResult(call.result, providerName)
     }
 
 }

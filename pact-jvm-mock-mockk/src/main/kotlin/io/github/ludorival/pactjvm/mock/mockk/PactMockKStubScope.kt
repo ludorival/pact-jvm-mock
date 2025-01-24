@@ -29,7 +29,7 @@ class PactMockKStubScope<T, B>(
         interactionBuilder.requestMatchingRules(block)
     }
 
-    infix fun macthingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
+    infix fun matchingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
         interactionBuilder.responseMatchingRules(block)
     }
 
@@ -86,7 +86,7 @@ class PactMockKStubScope<T, B>(
             interactionBuilder.requestMatchingRules(block)
         }
 
-        infix fun macthingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
+        infix fun matchingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder) = apply {
             interactionBuilder.responseMatchingRules(block)
         }
 

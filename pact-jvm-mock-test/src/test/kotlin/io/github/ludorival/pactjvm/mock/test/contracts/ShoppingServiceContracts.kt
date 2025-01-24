@@ -25,7 +25,7 @@ fun RestTemplate.willCreateShoppingList(description: String? = null) =
         }
         .withDescription(description)
         .given { state("the shopping list is empty", mapOf("userId" to USER_ID)) }
-        .macthingResponse { body("created_at", TypeMatcher) } returns
+        .matchingResponse { body("created_at", TypeMatcher) } returns
         ResponseEntity.ok(EMPTY_SHOPPING_LIST)
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
@@ -77,7 +77,7 @@ fun RestTemplate.willListTwoShoppingLists() =
         .matchingRequest {
             header("Authorization", RegexMatcher( "Bearer .*"))
         }
-        .macthingResponse {
+        .matchingResponse {
             body("[*].id", TypeMatcher)
             body("[*].created_at", TypeMatcher)
         } returns

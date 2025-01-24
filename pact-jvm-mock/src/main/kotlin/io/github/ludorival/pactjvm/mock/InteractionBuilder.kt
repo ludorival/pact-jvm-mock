@@ -36,7 +36,7 @@ class InteractionBuilder<T>() {
         providerStatesHandler?.invoke(providerStateBuilder)
         val draftInteraction = DraftInteraction(
             descriptionHandler(this) ?: PactMock.currentTestInfo?.displayName ?: error("A description is required"),
-            providerStateBuilder.get(), requestMatchingRulesBuilder.build(), requestMatchingRulesBuilder.build()
+            providerStateBuilder.get(), requestMatchingRulesBuilder.build(), responseMatchingRulesBuilder.build()
         )
         return generator(draftInteraction).apply {
             PactMock.currentTestInfo?.let { testInfo ->

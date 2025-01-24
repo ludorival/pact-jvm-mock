@@ -2,6 +2,7 @@ package io.github.ludorival.pactjvm.mock.test.verifier
 
 import au.com.dius.pact.provider.junit5.HttpTestTarget
 import au.com.dius.pact.provider.junit5.PactVerificationContext
+import au.com.dius.pact.provider.junitsupport.Consumer
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
 @Provider("user-service")
+@Consumer("shopping-webapp")
 @PactFolder("pacts")
 class UserServicePactVerifier {
 

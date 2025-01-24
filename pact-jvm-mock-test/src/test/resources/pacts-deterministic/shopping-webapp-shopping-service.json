@@ -1,0 +1,283 @@
+{
+  "consumer": {
+    "name": "shopping-webapp"
+  },
+  "interactions": [
+    {
+      "description": "Patch a shopping item",
+      "request": {
+        "body": {
+          "id": 2,
+          "name": "Banana",
+          "quantity": 3
+        },
+        "method": "PATCH",
+        "path": "/shopping-service/user/123/list/1"
+      },
+      "response": {
+        "body": {
+          "id": 2,
+          "name": "Banana",
+          "quantity": 3
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "should return a 400 Bad request",
+      "providerStates": [
+        {
+          "name": "The request should return a 400 Bad request"
+        }
+      ],
+      "request": {
+        "body": {
+          "title": "Unexpected character \\s"
+        },
+        "method": "POST",
+        "path": "/shopping-service/user/123"
+      },
+      "response": {
+        "body": "The title contains unexpected character",
+        "status": 400
+      }
+    },
+    {
+      "description": "delete shopping item",
+      "request": {
+        "method": "DELETE",
+        "path": "/shopping-service/user/123/list/2"
+      },
+      "response": {
+        "status": 200
+      }
+    },
+    {
+      "description": "list two shopping lists",
+      "request": {
+        "body": null,
+        "headers": {
+          "Authorization": "Bearer token123",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "header": {
+            "$.Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "Bearer .*"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/shopping-service/user/123",
+        "query": {
+          "limit": [
+            "30"
+          ]
+        }
+      },
+      "response": {
+        "body": [
+          {
+            "created_at": "2023-01-01",
+            "id": 1,
+            "items": [
+              {
+                "id": 1,
+                "name": "Apple",
+                "quantity": 2
+              },
+              {
+                "id": 2,
+                "name": "Banana",
+                "quantity": 2
+              }
+            ],
+            "title": "My Favorite Shopping list",
+            "user_id": 123
+          },
+          {
+            "created_at": "2023-01-01",
+            "id": 2,
+            "items": [
+              {
+                "id": 1,
+                "name": "Chicken",
+                "quantity": 2
+              },
+              {
+                "id": 2,
+                "name": "Beed",
+                "quantity": 1
+              }
+            ],
+            "title": "My Shopping list to delete",
+            "user_id": 123
+          }
+        ],
+        "matchingRules": {
+          "body": {
+            "$[*].created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[*].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "should get the current shopping list and update the item quantity",
+      "request": {
+        "method": "GET",
+        "path": "/shopping-service/user/123/list/1"
+      },
+      "response": {
+        "body": {
+          "created_at": "2023-01-01",
+          "id": 1,
+          "items": [
+            {
+              "id": 1,
+              "name": "Apple",
+              "quantity": 2
+            },
+            {
+              "id": 2,
+              "name": "Banana",
+              "quantity": 2
+            }
+          ],
+          "title": "My Favorite Shopping list",
+          "user_id": 123
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "create empty shopping list",
+      "providerStates": [
+        {
+          "name": "the shopping list is empty",
+          "params": {
+            "userId": 123
+          }
+        }
+      ],
+      "request": {
+        "body": {
+          "title": "My Shopping list"
+        },
+        "method": "POST",
+        "path": "/shopping-service/user/123"
+      },
+      "response": {
+        "body": {
+          "created_at": "2023-01-01",
+          "id": 1,
+          "items": [
+
+          ],
+          "title": "My Shopping list",
+          "user_id": 123
+        },
+        "matchingRules": {
+          "body": {
+            "$.created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "should set preferred shopping list",
+      "providerStates": [
+        {
+          "name": "the shopping list is empty",
+          "params": {
+            "userId": 123
+          }
+        }
+      ],
+      "request": {
+        "body": {
+          "title": "My Shopping list"
+        },
+        "method": "POST",
+        "path": "/shopping-service/user/123"
+      },
+      "response": {
+        "body": {
+          "created_at": "2023-01-01",
+          "id": 1,
+          "items": [
+
+          ],
+          "title": "My Shopping list",
+          "user_id": 123
+        },
+        "matchingRules": {
+          "body": {
+            "$.created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "update shopping list",
+      "request": {
+        "body": {
+          "name": "My updated shopping list"
+        },
+        "method": "PUT",
+        "path": "/shopping-service/user/123/list/2"
+      },
+      "response": {
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "shopping-service"
+  }
+}

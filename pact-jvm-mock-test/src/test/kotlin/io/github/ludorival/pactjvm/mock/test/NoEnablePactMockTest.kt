@@ -19,7 +19,7 @@ class NoEnablePactMockTest {
 
     @BeforeEach
     fun setUp() {
-        clearPact("shopping-list", API_1)
+        clearPact("shopping-service", API_1)
     }
 
     @Test
@@ -32,7 +32,7 @@ class NoEnablePactMockTest {
             restTemplate.getForEntity(TEST_API_1_URL, String::class.java)
         } then {
             // Verify no interactions were recorded since @PactConsumer is missing
-            val pact = getCurrentPact<RequestResponsePact>("shopping-list", API_1)
+            val pact = getCurrentPact<RequestResponsePact>("shopping-service", API_1)
             assertTrue(pact == null || pact.interactions.isEmpty(), "Expected no interactions to be recorded")
         }
     }

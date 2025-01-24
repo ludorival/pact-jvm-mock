@@ -15,7 +15,7 @@ abstract class PactMockAdapter<I: Interaction> {
 
     abstract fun determineConsumerAndProvider(call: Call<*>): Pair<String, String>
 
-    open fun <T> returnsResult(result: Result<T>) = result.getOrThrow()
+    open fun <T> returnsResult(result: Result<T>, providerName: String) = result.getOrThrow()
 
 }
 

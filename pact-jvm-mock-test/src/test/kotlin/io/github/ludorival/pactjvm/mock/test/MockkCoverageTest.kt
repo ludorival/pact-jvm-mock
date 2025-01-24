@@ -6,6 +6,7 @@ import au.com.dius.pact.core.model.RequestResponseInteraction
 import au.com.dius.pact.core.model.RequestResponsePact
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher
+import au.com.dius.pact.core.model.matchingrules.MatchingRuleCategory
 import au.com.dius.pact.core.support.json.JsonValue
 import io.github.ludorival.kotlintdd.SimpleGivenWhenThen.given
 import io.github.ludorival.kotlintdd.then
@@ -33,7 +34,7 @@ class MockkCoverageTest {
 
     @BeforeEach
     fun setUp() {
-        clearPact("shopping-list", API_1)
+        clearPact("shopping-webapp", API_1)
     }
 
     @Test
@@ -87,7 +88,7 @@ class MockkCoverageTest {
                 )
             }.matchingRequest {
                 header("Content-Type", RegexMatcher( "application/json.*"))
-            }.macthingResponse {
+            }.matchingResponse {
                 body("id", TypeMatcher)
             }.returns(ResponseEntity.ok("""{"id": "123"}"""))
         } `when` {
@@ -336,6 +337,57 @@ class MockkCoverageTest {
         }
     }
 
+    @Test
+    fun `should handle matching rules with different path formats`() {
+        given {
+            uponReceiving {
+                restTemplate.getForEntity(any<String>(), eq(String::class.java))
+            }.matchingRequest {
+                query("limit", TypeMatcher)
+                query("offset", RegexMatcher("\\d+"))
+            }.matchingResponse {
+                // Using $ prefix
+                body("$.items[*].id", TypeMatcher)
+                // Without $ prefix
+                body("total", TypeMatcher)
+                body("metadata.version", RegexMatcher("\\d+\\.\\d+\\.\\d+"))
+                // Array response body
+                body("[*].id", TypeMatcher)
+            }.returns(ResponseEntity.ok("""
+                {
+                    "items": [
+                        {"id": 1, "name": "First"},
+                        {"id": 2, "name": "Second"}
+                    ],
+                    "total": 2,
+                    "metadata": {
+                        "version": "1.0.0"
+                    }
+                }
+            """.trimIndent()))
+        } `when` {
+            restTemplate.getForEntity("$TEST_API_1_URL/items?limit=10&offset=0", String::class.java)
+        } then {
+            with(currentPact().interactions.filterIsInstance<RequestResponseInteraction>()) {
+                assertEquals(1, size)
+                with(first()) {
+                    assertNotNull(request.matchingRules)
+                    assertNotNull(response.matchingRules)
+                    // Query rules
+                    request.matchingRules.rulesForCategory("query").shouldHaveRule("$.limit")
+                    request.matchingRules.rulesForCategory("query").shouldHaveRule("$.offset")
+                    // Response body rules
+                    with(response.matchingRules.rulesForCategory("body")) {
+                        shouldHaveRule("$.items[*].id")
+                        shouldHaveRule("$.total")
+                        shouldHaveRule("$.metadata.version")
+                        shouldHaveRule("$[*].id")
+                    }
+                }
+            }
+        }
+    }
+
     companion object {
         val API_1 = "service1"
         val TEST_API_1_URL = "http://localhost:8080/$API_1/api/v1"
@@ -346,12 +398,16 @@ class MockkCoverageTest {
         )
 
         private fun currentPact(): RequestResponsePact {
-            return getCurrentPact<RequestResponsePact>("shopping-list", API_1) 
+            return currentPactOrNull()
                 ?: throw AssertionError("Expected pact to be non-null")
         }
 
         private fun currentPactOrNull(): RequestResponsePact? {
-            return getCurrentPact<RequestResponsePact>("shopping-list", API_1)
+            return getCurrentPact<RequestResponsePact>("shopping-webapp", API_1)
+        }
+
+        private fun MatchingRuleCategory.shouldHaveRule(path: String) {
+            assertTrue(filter { it == path }.isNotEmpty(), "Not found $path in $this")
         }
     }
 }

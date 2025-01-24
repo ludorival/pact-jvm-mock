@@ -56,6 +56,6 @@
     }
   },
   "provider": {
-    "name": "shopping-list"
+    "name": "shopping-service"
   }
 }

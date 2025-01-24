@@ -1,0 +1,110 @@
+{
+  "consumer": {
+    "name": "shopping-webapp"
+  },
+  "interactions": [
+    {
+      "description": "should handle matching rules with different path formats",
+      "request": {
+        "matchingRules": {
+          "query": {
+            "$.limit": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.offset": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d+"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/service1/api/v1/items",
+        "query": {
+          "limit": [
+            "10"
+          ],
+          "offset": [
+            "0"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "items": [
+            {
+              "id": 1,
+              "name": "First"
+            },
+            {
+              "id": 2,
+              "name": "Second"
+            }
+          ],
+          "metadata": {
+            "version": "1.0.0"
+          },
+          "total": 2
+        },
+        "matchingRules": {
+          "body": {
+            "$.items[*].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.metadata.version": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d+\\.\\d+\\.\\d+"
+                }
+              ]
+            },
+            "$.total": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[*].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "service1"
+  }
+}

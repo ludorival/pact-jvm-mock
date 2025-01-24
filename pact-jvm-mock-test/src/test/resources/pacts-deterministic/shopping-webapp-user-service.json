@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "shopping-list"
+    "name": "shopping-webapp"
   },
   "interactions": [
     {

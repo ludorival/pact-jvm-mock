@@ -33,7 +33,7 @@ class RabbitMQPactTest {
 
     @BeforeEach
     fun setUp() {
-        clearPact(ORDER_SERVICE, SHOPPING_LIST)
+        clearPact(ORDER_SERVICE, SHOPPING_SERVICE)
     }
 
     @Test
@@ -68,7 +68,7 @@ class RabbitMQPactTest {
         } `when` {
             publisher.publishOrderFromShoppingList(shoppingList)
         } then {
-            with(getCurrentPact<V4Pact>(ORDER_SERVICE, SHOPPING_LIST)!!) {
+            with(getCurrentPact<V4Pact>(ORDER_SERVICE, SHOPPING_SERVICE)!!) {
                 println(toMap(PactSpecVersion.V4))
                 assertEquals(1, interactions.size)
                 assertEquals(PactSpecVersion.V4.versionString(), (metadata["pactSpecification"] as Map<String,Any>)["version"])
@@ -92,6 +92,6 @@ class RabbitMQPactTest {
 
     companion object {
         const val ORDER_SERVICE = "order-service"
-        const val SHOPPING_LIST = "shopping-list"
+        const val SHOPPING_SERVICE = "shopping-service"
     }
 }

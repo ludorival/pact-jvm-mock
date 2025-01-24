@@ -9,7 +9,7 @@ import io.github.ludorival.pactjvm.mock.test.shoppingservice.objectMapperBuilder
 object RabbitMQPactV4Config : PactConfiguration(
     object : SpringRabbitMQMockAdapter("order-service", objectMapperBuilder().build()) {
         override fun determineConsumerAndProvider(call: Call<*>): Pair<String, String> {
-            return "order-service" to "shopping-list"
+            return "order-service" to "shopping-service"
         }
     }
 ) {
