@@ -199,9 +199,9 @@ project(":pact-jvm-mock-spring") {
 project(":pact-jvm-mock-test") {
     dependencies {
         implementation(kotlin("stdlib-jdk8"))
-        implementation("org.springframework.boot:spring-boot-starter-web:3.0.2")
+        implementation("org.springframework.boot:spring-boot-starter-web:3.2.2")
         implementation("org.springframework:spring-web:6.2.2")
-        implementation("org.springframework.boot:spring-boot-starter-amqp:3.0.2")
+        implementation("org.springframework.boot:spring-boot-starter-amqp:3.2.2")
         
         testImplementation("io.mockk:mockk:1.13.16")
         testImplementation(project(":pact-jvm-mock-spring"))
@@ -212,9 +212,8 @@ project(":pact-jvm-mock-test") {
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
         testImplementation("org.mockito:mockito-core:5.15.2")
         testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
-        testImplementation("org.springframework.boot:spring-boot-starter-test:3.0.2")
+        testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.2")
         testImplementation("au.com.dius.pact.provider:junit5:4.6.16")
-        testImplementation("au.com.dius.pact.provider:junit5spring:4.6.16")
-        testImplementation("au.com.dius.pact.provider:spring:4.6.16")
+        testImplementation("au.com.dius.pact.provider:spring6:4.6.16")
     }
 }
