@@ -6,7 +6,7 @@ import au.com.dius.pact.provider.junitsupport.Consumer
 import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder
-import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider
+import au.com.dius.pact.provider.spring.spring6.PactVerificationSpring6Provider
 import io.github.ludorival.pactjvm.mock.test.PREFERRED_SHOPPING_LIST
 import io.github.ludorival.pactjvm.mock.test.SHOPPING_LIST_TO_DELETE
 import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingServiceApplication
@@ -53,7 +53,7 @@ class ShoppingServicePactVerifier {
     }
 
     @TestTemplate
-    @ExtendWith(PactVerificationSpringProvider::class)
+    @ExtendWith(PactVerificationSpring6Provider::class)
     fun pactVerificationTestTemplate(context: PactVerificationContext) {
         context.verifyInteraction()
     }
