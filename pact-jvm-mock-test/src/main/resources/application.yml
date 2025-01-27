@@ -12,11 +12,6 @@ spring:
   config:
     activate:
       on-profile: shopping-service
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 server:
   port: 4000
 
@@ -25,11 +20,6 @@ spring:
   config:
     activate:
       on-profile: user-service
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
 server:
   port: 4001
 

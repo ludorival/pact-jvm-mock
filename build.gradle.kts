@@ -166,7 +166,6 @@ project(":pact-jvm-mock") {
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
         implementation(kotlin("stdlib-jdk8"))
-        implementation("org.slf4j:slf4j-api:2.0.16")
         api("au.com.dius.pact.core:model:4.6.16")
         implementation("au.com.dius.pact.core:support:4.6.16")
     }
@@ -200,8 +199,6 @@ project(":pact-jvm-mock-test") {
     dependencies {
         implementation(kotlin("stdlib-jdk8"))
         implementation("org.springframework.boot:spring-boot-starter-web:3.2.2")
-        implementation("org.springframework:spring-web:6.2.2")
-        implementation("org.springframework.boot:spring-boot-starter-amqp:3.2.2")
         
         testImplementation("io.mockk:mockk:1.13.16")
         testImplementation(project(":pact-jvm-mock-spring"))
