@@ -172,48 +172,6 @@
       }
     },
     {
-      "description": "create empty shopping list",
-      "providerStates": [
-        {
-          "name": "the shopping list is empty",
-          "params": {
-            "userId": 123
-          }
-        }
-      ],
-      "request": {
-        "body": {
-          "title": "My Shopping list"
-        },
-        "method": "POST",
-        "path": "/shopping-service/user/123"
-      },
-      "response": {
-        "body": {
-          "created_at": "2023-01-01",
-          "id": 1,
-          "items": [
-
-          ],
-          "title": "My Shopping list",
-          "user_id": 123
-        },
-        "matchingRules": {
-          "body": {
-            "$.created_at": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            }
-          }
-        },
-        "status": 200
-      }
-    },
-    {
       "description": "should set preferred shopping list",
       "providerStates": [
         {

@@ -60,6 +60,8 @@ internal data class PactToWrite(
         val hasChanged = existing != null && interaction != existing
         val countInteractions =
             if (hasChanged && !isDeterministic) interactionsByDescription.keys.count { it.startsWith(interaction.description) } else 0
+
+        val similarInteraction by lazy { interactionsByDescription.values.firstOrNull { it.areInteractionsSame(interaction) } }
         return when {
             hasChanged && isDeterministic -> {
                 throw IllegalStateException(printDifferences(existing!!, interaction))
@@ -75,12 +77,24 @@ internal data class PactToWrite(
             }
 
             existing != null -> this.also { LOGGER.debug { "Existing interaction found for description ${interaction.description}" } }
+            similarInteraction != null -> this.also { LOGGER.warn { "Skip the interaction with description ${interaction.description} because it is similar to ${similarInteraction?.description}" } }
             else -> {
                 interactionsByDescription[interaction.description] = interaction
                 descriptions.add(interaction.description)
                 this
             }
         }
+    }
+
+    private fun Interaction.areInteractionsSame(other: Interaction): Boolean {
+        val descriptionA = this.description
+        val descriptionB = other.description
+        this.description = ""
+        other.description = ""
+        val result = this == other
+        this.description = descriptionA
+        other.description = descriptionB
+        return result
     }
 
     private fun createPact(
