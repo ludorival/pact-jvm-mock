@@ -14,34 +14,41 @@ import org.mockito.internal.stubbing.answers.ThrowsExceptionForClassType;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 import org.mockito.Mockito;
-
+import java.util.function.BiFunction
+import java.util.function.Function
 
 class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing<T>) :
     OngoingStubbing<T> by ongoingStubbing {
 
     private val interactionBuilder = InteractionBuilder<T>()
+
     fun withDescription(description: String): PactMockitoOngoingStubbing<T> {
         interactionBuilder.description { description }
         return this
     }
 
-    infix fun withDescription(description: InteractionHandler<String>) = apply {
-        interactionBuilder.description(description)
+    fun withDescription(descriptionFunction: Function<InteractionBuilder<T>, String>): PactMockitoOngoingStubbing<T> = apply {
+        interactionBuilder.description { descriptionFunction.apply(interactionBuilder ) }
     }
 
-    fun given(block: ProviderStateBuilder.() -> ProviderStateBuilder): PactMockitoOngoingStubbing<T> {
-        interactionBuilder.providerState(block)
+    fun given(stateFunction: Function<ProviderStateBuilder, ProviderStateBuilder>): PactMockitoOngoingStubbing<T> {
+        interactionBuilder.providerState {
+            stateFunction.apply(this)
+        }
         return this
     }
 
-    fun matchingRequest(block: MatchingRulesBuilder.() -> MatchingRulesBuilder): PactMockitoOngoingStubbing<T> = apply {
-        interactionBuilder.requestMatchingRules(block)
+    fun matchingRequest(rulesFunction: Function<MatchingRulesBuilder, MatchingRulesBuilder>): PactMockitoOngoingStubbing<T> = apply {
+        interactionBuilder.requestMatchingRules {
+            rulesFunction.apply(this)
+        }
     }
 
-    fun matchingResponse(block: MatchingRulesBuilder.() -> MatchingRulesBuilder): PactMockitoOngoingStubbing<T> =
-        apply {
-            interactionBuilder.responseMatchingRules(block)
+    fun matchingResponse(rulesFunction: Function<MatchingRulesBuilder, MatchingRulesBuilder>): PactMockitoOngoingStubbing<T> = apply {
+        interactionBuilder.responseMatchingRules {
+            rulesFunction.apply(this)
         }
+    }
 
     fun andThenAnswer(answer: Answer<*>): PactMockitoOngoingStubbing<T> {
         return PactMockitoOngoingStubbing(ongoingStubbing.thenAnswer { invocation ->
@@ -104,16 +111,13 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
         }
         return stubbing
     }
-
 }
 
 object PactMockito {
-
     @JvmStatic
     fun <T> uponReceiving(method: T): PactMockitoOngoingStubbing<T> {
         return PactMockitoOngoingStubbing(Mockito.`when`(method))
     }
-
 }
 
 fun <T> uponReceiving(method: T) = PactMockito.uponReceiving(method)
