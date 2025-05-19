@@ -7,7 +7,7 @@ import org.jreleaser.model.Distribution
 plugins {
     kotlin("jvm") version "2.1.21"
     id("org.jreleaser") version "1.18.0"
-    id("com.palantir.git-version") version "3.2.0"
+    id("com.palantir.git-version") version "3.3.0"
     id("maven-publish")
 }
 
