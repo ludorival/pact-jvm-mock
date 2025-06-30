@@ -205,7 +205,7 @@ project(":pact-jvm-mock-test") {
         testImplementation(project(":pact-jvm-mock-mockito"))
         testImplementation("io.github.ludorival:kotlin-tdd:2.3.0")
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.13.2")
         testImplementation("org.mockito:mockito-core:5.18.0")
         testImplementation("org.mockito:mockito-junit-jupiter:5.18.0")
         testImplementation("org.springframework.boot:spring-boot-starter-test:3.3.8")
