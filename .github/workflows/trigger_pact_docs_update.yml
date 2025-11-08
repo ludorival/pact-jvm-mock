@@ -1,0 +1,23 @@
+# This workflow triggers the docs sync in docs.pact.io when markdown files are updated in pact-jvm-mock
+
+name: Trigger Pact docs update
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'README.md'
+
+jobs:
+  trigger-docs-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger docs.pact.io sync
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GHTOKENFORTRIGGERINGPACTDOCSUPDATE }}
+          repository: pact-foundation/docs.pact.io
+          event-type: pact-jvm-mock-docs-updated
+
+
