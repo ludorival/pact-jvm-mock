@@ -189,7 +189,7 @@ project(":pact-jvm-mock-spring") {
     dependencies {
         api(project(":pact-jvm-mock"))
         implementation(kotlin("stdlib-jdk8"))
-        compileOnly("org.springframework:spring-web:6.2.10")
+        compileOnly("org.springframework:spring-web:6.2.12")
         compileOnly("com.fasterxml.jackson.core:jackson-databind:2.19.2")
     }
 }
