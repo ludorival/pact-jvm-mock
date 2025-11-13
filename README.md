@@ -13,7 +13,7 @@ The library is available on Maven Central using:
 
 * group-id = `io.github.ludorival`
 * artifact-id = `pact-jvm-mock-mockito` (for Mockito) or `pact-jvm-mock-mockk` (for Mockk) or `pact-jvm-mock-spring` (for Spring RestTemplate)
-* version-id = `1.4.x` (or latest)
+* version-id = `1.4.0`
 
 ### Gradle
 
@@ -65,7 +65,7 @@ First, create a configuration class that extends `PactConfiguration`:
 import io.github.ludorival.pactjvm.mock.PactConfiguration
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
 
-object MyServicePactConfig : PactConfiguration("my-consumer", SpringRestTemplateMockAdapter())
+object MyServicePactConfig : PactConfiguration(SpringRestTemplateMockAdapter("my-consumer"))
 ```
 
 **Java:**
@@ -76,7 +76,7 @@ import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter;
 
 public static class MyPactConfiguration extends PactConfiguration {
     public MyPactConfiguration() {
-        super("my-consumer", new SpringRestTemplateMockAdapter());
+        super(new SpringRestTemplateMockAdapter("my-consumer"));
     }
 }
 ```
@@ -86,7 +86,7 @@ Then, annotate your test class with `@EnablePactMock`:
 **Kotlin:**
 
 ```kotlin
-import io.github.ludorival.pactjvm.mock.mockk.EnablePactMock
+import io.github.ludorival.pactjvm.mock.EnablePactMock
 
 @EnablePactMock(MyServicePactConfig::class)
 class ShoppingServiceClientTest
@@ -95,7 +95,7 @@ class ShoppingServiceClientTest
 **Java:**
 
 ```java
-import io.github.ludorival.pactjvm.mock.mockito.EnablePactMock;
+import io.github.ludorival.pactjvm.mock.EnablePactMock;
 
 @EnablePactMock(MyPactConfiguration.class)
 public class ShoppingServiceClientTest {
@@ -289,28 +289,23 @@ uponReceiving {
 **Java:**
 
 ```java
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpHeaders;
-import java.nio.charset.StandardCharsets;
+import static io.github.ludorival.pactjvm.mock.mockito.PactMockito.uponReceiving;
+import static io.github.ludorival.pactjvm.mock.UtilsKt.anError;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import org.springframework.http.ResponseEntity;
 import java.util.function.Function;
 import io.github.ludorival.pactjvm.mock.ProviderStateBuilder;
 import java.util.Collections;
+import java.net.URI;
 
-String errorMessage = "The title contains unexpected character";
 Function<ProviderStateBuilder, ProviderStateBuilder> stateFunction = 
     builder -> builder.state("The request should return a 400 Bad request", 
                              Collections.emptyMap());
 
 uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(ShoppingList.class)))
     .given(stateFunction)
-    .thenThrow(HttpClientErrorException.BadRequest.create(
-        HttpStatus.BAD_REQUEST,
-        errorMessage,
-        new HttpHeaders(),
-        errorMessage.getBytes(StandardCharsets.UTF_8),
-        StandardCharsets.UTF_8
-    ));
+    .thenThrow(anError(ResponseEntity.badRequest().body("The title contains unexpected character")));
 ```
 
 ## Advanced Configuration
@@ -322,14 +317,15 @@ You can specify a custom ObjectMapper for serializing request/response bodies fo
 **Kotlin:**
 
 ```kotlin
+import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
+import io.github.ludorival.pactjvm.mock.spring.serializerAsDefault
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import java.time.LocalDate
-import io.github.ludorival.pactjvm.mock.serializerAsDefault
 
 object MyServicePactConfig : PactConfiguration(
-    "my-service", 
-    SpringRestTemplateMockAdapter({ providerName ->
+    SpringRestTemplateMockAdapter("my-service", { providerName ->
         Jackson2ObjectMapperBuilder()
             .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
             .serializerByType(
@@ -349,7 +345,10 @@ Enable deterministic mode by setting `isDeterministic = true` in your `PactConfi
 **Kotlin:**
 
 ```kotlin
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
+import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
+
+object MyServicePactConfig : PactConfiguration(SpringRestTemplateMockAdapter("my-service")) {
     override fun isDeterministic() = true // Enable deterministic mode
 }
 ```
@@ -359,9 +358,15 @@ For specific fields that are naturally dynamic (like dates or IDs), you can prov
 **Kotlin:**
 
 ```kotlin
+import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
+import io.github.ludorival.pactjvm.mock.spring.serializerAsDefault
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import java.time.LocalDateTime
+import java.util.UUID
+
 object MyServicePactConfig : PactConfiguration(
-    "my-service",
-    SpringRestTemplateMockAdapter({ providerName ->
+    SpringRestTemplateMockAdapter("my-service", { providerName ->
         Jackson2ObjectMapperBuilder()
             .serializerByType(
                 LocalDateTime::class.java,
@@ -391,7 +396,10 @@ By default, the generated pacts are stored in `src/test/resources/pacts`. You ca
 **Kotlin:**
 
 ```kotlin
-object MyServicePactConfig : PactConfiguration("my-service", SpringRestTemplateMockAdapter()) {
+import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
+
+object MyServicePactConfig : PactConfiguration(SpringRestTemplateMockAdapter("my-service")) {
     override fun getPactDirectory() = "my-own-directory"
 }
 ```
