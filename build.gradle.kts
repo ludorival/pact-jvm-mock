@@ -166,7 +166,7 @@ project(":pact-jvm-mock") {
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
         implementation(kotlin("stdlib-jdk8"))
-        api("au.com.dius.pact.core:model:4.6.18")
+        api("au.com.dius.pact.core:model:4.6.20")
         implementation("au.com.dius.pact.core:support:4.6.18")
     }
 }
