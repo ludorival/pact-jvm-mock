@@ -1,25 +1,21 @@
 package io.github.ludorival.pactjvm.mock.test.shoppingservice
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 open class ShoppingServiceConfiguration {
 
     @Bean
-    @Primary
-    open fun objectMapper(): ObjectMapper = objectMapperBuilder().build()
+    open fun shoppingServiceJsonCustomizer() = JsonMapperBuilderCustomizer { it.configureForShoppingService() }
 }
 
-fun objectMapperBuilder(): Jackson2ObjectMapperBuilder = Jackson2ObjectMapperBuilder()
-    .modules(JavaTimeModule())
+fun JsonMapper.Builder.configureForShoppingService(): JsonMapper.Builder = this
     .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-    .serializationInclusion(JsonInclude.Include.NON_NULL)
-    .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    .changeDefaultPropertyInclusion { it.withValueInclusion(JsonInclude.Include.NON_NULL) }
+    .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)

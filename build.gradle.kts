@@ -1,29 +1,26 @@
-// Plugin imports and declarations
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jreleaser.model.Active
-import org.jreleaser.model.Distribution
-
 
 plugins {
-    kotlin("jvm") version "2.1.21"
-    id("org.jreleaser") version "1.25.0"
-    id("com.palantir.git-version") version "3.4.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.jreleaser)
+    alias(libs.plugins.git.version)
     id("maven-publish")
 }
 
-// Root project configuration
-val gitVersion: groovy.lang.Closure<String> by extra
+@Suppress("UNCHECKED_CAST")
+val gitVersion = extra["gitVersion"] as groovy.lang.Closure<String>
 
 group = "io.github.ludorival"
 version = gitVersion().replace(".dirty", "-SNAPSHOT")
 
-// Common configuration for all subprojects
 subprojects {
     group = rootProject.group
     version = rootProject.version
     
     apply {
-        plugin("kotlin")
+        plugin("org.jetbrains.kotlin.jvm")
         plugin("org.jreleaser")
         plugin("maven-publish")
     }
@@ -32,30 +29,34 @@ subprojects {
         mavenCentral()
     }
 
-    // Java configuration
     java {
         withJavadocJar()
         withSourcesJar()
         sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Task configurations
-    tasks.getByName<Test>("test") {
+    tasks.named<Test>("test") {
         useJUnitPlatform {
-            // Run non-contract tests first
             includeTags("!contract-test")
         }
     }
     tasks.register<Test>("contractTest") {
         description = "Runs contract tests"
         group = "verification"
+        val testSourceSet = sourceSets.test.get()
+        testClassesDirs = testSourceSet.output.classesDirs
+        classpath = testSourceSet.runtimeClasspath
+        shouldRunAfter(tasks.test)
         useJUnitPlatform {
             includeTags("contract-test")
         }
     }
 
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
 
     tasks.jar.configure {
@@ -99,12 +100,11 @@ subprojects {
         }
         repositories {
             maven {
-                url = uri("$buildDir/staging-deploy")
+                url = uri(layout.buildDirectory.dir("staging-deploy"))
             }
         }
     }
 
-    // JReleaser configuration
     jreleaser {
         gitRootSearch.set(true)
         project {
@@ -147,69 +147,13 @@ subprojects {
 
     tasks.register("createJReleaserDir") {
         doFirst {
-            mkdir("$buildDir/jreleaser")
+            mkdir(layout.buildDirectory.dir("jreleaser"))
         }
     }
 }
 
-// Repository configuration for all projects
 allprojects {
     repositories {
         mavenCentral()
-    }
-}
-
-// Individual project dependencies
-project(":pact-jvm-mock") {
-    dependencies {
-        compileOnly("org.junit.jupiter:junit-jupiter-api:5.11.4")
-        implementation("org.jetbrains.kotlin:kotlin-reflect")
-        implementation("org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:1.0")
-        implementation(kotlin("stdlib-jdk8"))
-        api("au.com.dius.pact.core:model:4.6.20")
-        implementation("au.com.dius.pact.core:support:4.6.20")
-    }
-}
-
-project(":pact-jvm-mock-mockk") {
-    dependencies {
-        api(project(":pact-jvm-mock"))
-        compileOnly("io.mockk:mockk:1.14.11")
-    }
-}
-
-project(":pact-jvm-mock-mockito") {
-    dependencies {
-        api(project(":pact-jvm-mock"))
-        compileOnly("org.mockito:mockito-core:5.18.0")
-    }
-}
-
-project(":pact-jvm-mock-spring") {
-    dependencies {
-        api(project(":pact-jvm-mock"))
-        implementation(kotlin("stdlib-jdk8"))
-        compileOnly("org.springframework:spring-web:6.2.19")
-        compileOnly("com.fasterxml.jackson.core:jackson-databind:2.20.1")
-    }
-}
-
-project(":pact-jvm-mock-test") {
-    dependencies {
-        implementation(kotlin("stdlib-jdk8"))
-        implementation("org.springframework.boot:spring-boot-starter-web:3.3.8")
-        
-        testImplementation("io.mockk:mockk:1.14.11")
-        testImplementation(project(":pact-jvm-mock-spring"))
-        testImplementation(project(":pact-jvm-mock-mockk"))
-        testImplementation(project(":pact-jvm-mock-mockito"))
-        testImplementation("io.github.ludorival:kotlin-tdd:2.3.0")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.11.4")
-        testImplementation("org.mockito:mockito-core:5.18.0")
-        testImplementation("org.mockito:mockito-junit-jupiter:5.18.0")
-        testImplementation("org.springframework.boot:spring-boot-starter-test:3.3.8")
-        testImplementation("au.com.dius.pact.provider:junit5:4.6.20")
-        testImplementation("au.com.dius.pact.provider:spring6:4.6.18")
     }
 }

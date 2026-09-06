@@ -236,7 +236,7 @@ class MockkCoverageTest {
                     eq(String::class.java)
                 )
             }.withDescription {
-                "POST request to ${call.firstArg<String>()} with ${(call.secondArg<HttpEntity<Map<*, *>>>().body.size)} parameters"
+                "POST request to ${call.firstArg<String>()} with ${(call.secondArg<HttpEntity<Map<*, *>>>().body?.size)} parameters"
             }.given {
                 val httpEntity = call.secondArg<HttpEntity<*>>()
                 state(
