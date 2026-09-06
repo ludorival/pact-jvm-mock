@@ -94,7 +94,7 @@ public static class MyPactConfiguration extends PactConfiguration {
 **Provider names:** Infer from service URLs (e.g., "user-service", "shopping-service")
 
 **Advanced:**
-- Custom ObjectMapper: Pass mapper builder to `SpringRestTemplateMockAdapter`
+- Custom JSON serialization: Pass a `(providerName) -> JsonBodySerializer?` to `SpringRestTemplateMockAdapter` (wrap a Jackson 3 `ObjectMapper` with `JacksonJsonBodySerializer`)
 - Custom Pact directory: Override `getPactDirectory()`
 
 ### Step 5: Migrate Test Classes

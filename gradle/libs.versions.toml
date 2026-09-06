@@ -1,0 +1,40 @@
+[versions]
+kotlin = "2.4.10"
+jreleaser = "1.26.0"
+git-version = "5.1.0"
+junit = "6.1.3"
+pact = "4.7.5"
+mockk = "1.14.11"
+mockito = "5.23.0"
+spring = "7.0.9"
+spring-boot = "4.1.1"
+jackson = "3.2.2"
+kotlin-logging = "7.0.14"
+kotlin-tdd = "2.3.0"
+diff-match-patch = "1.0"
+
+[libraries]
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
+pact-model = { module = "au.com.dius.pact.core:model", version.ref = "pact" }
+pact-support = { module = "au.com.dius.pact.core:support", version.ref = "pact" }
+pact-provider-junit5 = { module = "au.com.dius.pact.provider:junit5", version.ref = "pact" }
+pact-provider-spring7 = { module = "au.com.dius.pact.provider:spring7", version.ref = "pact" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+spring-web = { module = "org.springframework:spring-web", version.ref = "spring" }
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
+# Version managed by the Spring Boot BOM in pact-jvm-mock-test
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
+kotlin-tdd = { module = "io.github.ludorival:kotlin-tdd", version.ref = "kotlin-tdd" }
+diff-match-patch = { module = "org.bitbucket.cowwoc.diff-match-patch:diff-match-patch", version.ref = "diff-match-patch" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
+git-version = { id = "com.palantir.git-version", version.ref = "git-version" }

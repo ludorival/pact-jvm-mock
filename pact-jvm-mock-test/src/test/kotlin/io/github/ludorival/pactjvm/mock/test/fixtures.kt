@@ -4,10 +4,6 @@ import io.github.ludorival.pactjvm.mock.test.shoppingservice.ShoppingList
 import io.github.ludorival.pactjvm.mock.test.userservice.UserPreferences
 import io.github.ludorival.pactjvm.mock.test.userservice.UserProfile
 import java.time.LocalDate
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.annotation.JsonInclude
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 
 const val USER_ID = 123L
 const val PREFERRED_SHOPPING_ID = 1L

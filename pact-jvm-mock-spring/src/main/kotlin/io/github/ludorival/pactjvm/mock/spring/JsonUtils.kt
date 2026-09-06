@@ -1,12 +1,11 @@
 package io.github.ludorival.pactjvm.mock.spring
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
 
-
-fun <T> serializerWith(supplier: (JsonGenerator) -> Unit) = object : JsonSerializer<T>() {
-    override fun serialize(value: T, gen: JsonGenerator, serializers: SerializerProvider?) {
+fun <T> serializerWith(supplier: (JsonGenerator) -> Unit) = object : ValueSerializer<T>() {
+    override fun serialize(value: T, gen: JsonGenerator, context: SerializationContext) {
         supplier(gen)
     }
 }

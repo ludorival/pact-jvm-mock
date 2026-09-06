@@ -74,11 +74,11 @@ class PactMockitoOngoingStubbing<T>(private val ongoingStubbing: OngoingStubbing
 
     override fun then(answer: Answer<*>): OngoingStubbing<T> = andThenAnswer(answer)
 
-    fun andThenReturn(value: T): PactMockitoOngoingStubbing<T> = andThenAnswer(Returns(value))
+    fun andThenReturn(value: T?): PactMockitoOngoingStubbing<T> = andThenAnswer(Returns(value))
 
-    override fun thenReturn(value: T): OngoingStubbing<T> = andThenAnswer(Returns(value))
+    override fun thenReturn(value: T?): OngoingStubbing<T> = andThenReturn(value)
 
-    override fun thenReturn(value: T, vararg values: T): OngoingStubbing<T> {
+    override fun thenReturn(value: T?, vararg values: T?): OngoingStubbing<T> {
         var stubbing = andThenReturn(value)
         for (v in values) {
             stubbing = stubbing.andThenReturn(v)

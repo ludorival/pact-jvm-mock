@@ -44,3 +44,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 pact-jvm-mock-test/src/test/resources/pacts/shopping-service-service1.json
+
+# Kotlin 2.x compiler session data
+.kotlin/

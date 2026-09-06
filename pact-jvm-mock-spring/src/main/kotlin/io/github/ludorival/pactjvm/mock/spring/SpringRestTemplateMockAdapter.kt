@@ -9,19 +9,26 @@ import org.springframework.web.util.DefaultUriBuilderFactory
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.ludorival.pactjvm.mock.*
 import org.springframework.http.*
 
+/**
+ * Turns intercepted [RestTemplate] calls into Pact [RequestResponseInteraction]s.
+ *
+ * @param consumer the consumer name written in the generated pacts.
+ * @param serializerByProvider resolves the [JsonBodySerializer] used for a given provider;
+ * returning `null` falls back to [JacksonJsonBodySerializer] with its default mapper.
+ */
 @Suppress("TooManyFunctions")
-open class SpringRestTemplateMockAdapter(private val consumer: String, private val objectMapperByProvider: (String) -> ObjectMapper? = { null }) :
-    PactMockAdapter<RequestResponseInteraction>() {
+open class SpringRestTemplateMockAdapter(
+    private val consumer: String,
+    private val serializerByProvider: (String) -> JsonBodySerializer? = { null }
+) : PactMockAdapter<RequestResponseInteraction>() {
 
     constructor(consumer: String) : this(consumer, { null })
-    private val defaultObjectMapper = ObjectMapper().apply {
-        setSerializationInclusion(JsonInclude.Include.NON_NULL)
-    }
+
+    private val defaultSerializer: JsonBodySerializer by lazy { JacksonJsonBodySerializer() }
+
     private val uriTemplate by lazy {
         val uriFactory = DefaultUriBuilderFactory()
         uriFactory.encodingMode = EncodingMode.URI_COMPONENT // for backwards compatibility..
@@ -45,22 +52,22 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
                 val parts = param.split("=", limit = 2)
                 parts[0] to listOf(if (parts.size > 1) parts[1] else null)
             }?.toMap()?.toMutableMap() ?: mutableMapOf()
-        val objectMapper = objectMapperByProvider.invoke(providerName) ?: this.defaultObjectMapper
+        val serializer = serializerFor(providerName)
 
         val requestHeaders = call.getHttpHeaders()
         val request = Request(
             method = call.getHttpMethod().toString(),
             path = uri.path,
             query = queryParams,
-            headers = requestHeaders.toSingleValueMap().mapValues { (_, v) -> listOf(v) }.toMutableMap(),
-            body = serializeBody(body, requestHeaders, objectMapper)
+            headers = requestHeaders.toPactHeaders(),
+            body = serializeBody(body, requestHeaders, serializer)
         )
         val responseEntity = call.asResponseEntity()
         val response = with(responseEntity) {
             Response(
                 status = statusCode.value(),
-                headers = headers.toSingleValueMap().mapValues { (_, v) -> listOf(v) }.toMutableMap(),
-                body = serializeBody(this.body, headers, objectMapper)
+                headers = headers.toPactHeaders(),
+                body = serializeBody(this.body, headers, serializer)
             )
         }
         return interactionBuilder.build {
@@ -79,22 +86,28 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
         return Pair(consumer, uri.path.split("/").first { it.isNotBlank() })
     }
 
+    private fun serializerFor(providerName: String): JsonBodySerializer =
+        serializerByProvider(providerName) ?: defaultSerializer
+
     private fun <T> serializeBody(
         body: T,
         httpHeaders: HttpHeaders,
-        objectMapper: ObjectMapper
+        serializer: JsonBodySerializer
     ): OptionalBody {
         val contentType = if (httpHeaders.contentType == null && body != null && body !is String)
             ContentType.JSON else
             ContentType(org.apache.tika.mime.MediaType.parse(httpHeaders.contentType?.toString()))
         return when {
-            contentType.isJson() -> OptionalBody.body(objectMapper.writeValueAsBytes(body), contentType)
+            contentType.isJson() -> OptionalBody.body(serializer.serialize(body), contentType)
             else -> OptionalBody.body(
                 body?.toString(),
                 contentType
             )
         }
     }
+
+    private fun HttpHeaders.toPactHeaders(): MutableMap<String, List<String>> =
+        headerNames().associateWith { name -> listOfNotNull(getFirst(name)) }.toMutableMap()
 
     @Suppress("SpreadOperator")
     private fun <T> Call<T>.getUri(): URI {
@@ -166,17 +179,14 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
         }
     }
 
-    private fun String.asJson(): Any? = runCatching { defaultObjectMapper.readValue(this, Any::class.java) }.getOrNull()
-
     @Suppress("UNCHECKED_CAST")
     override fun <T> returnsResult(result: Result<T>, providerName: String): T {
         val exception = result.exceptionOrNull()
-        val objectMapper = objectMapperByProvider.invoke(providerName) ?: this.defaultObjectMapper
         if (exception is PactMockResponseError) {
             val responseEntity = exception.response as ResponseEntity<Any>
             val statusCode: HttpStatus =
                 responseEntity.statusCode as? HttpStatus ?: HttpStatus.valueOf(responseEntity.statusCode.value())
-            val optionalBody = serializeBody(responseEntity.body, responseEntity.headers, objectMapper)
+            val optionalBody = serializeBody(responseEntity.body, responseEntity.headers, serializerFor(providerName))
             throw HttpClientErrorException.create(
                 statusCode,
                 statusCode.reasonPhrase,
@@ -186,14 +196,6 @@ open class SpringRestTemplateMockAdapter(private val consumer: String, private v
             )
         }
         return super.returnsResult(result, providerName)
-    }
-
-    private fun ResponseEntity<Any>.asResponse(): Response {
-        return Response(
-            status = statusCode.value(),
-            headers = headers.toSingleValueMap().mapValues { (_, v) -> listOf(v) }.toMutableMap(),
-            body = OptionalBody.body(body?.toString()?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0))
-        )
     }
 
     @Suppress("UNCHECKED_CAST")

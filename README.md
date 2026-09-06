@@ -15,6 +15,15 @@ The library is available on Maven Central using:
 * artifact-id = `pact-jvm-mock-mockito` (for Mockito) or `pact-jvm-mock-mockk` (for Mockk) or `pact-jvm-mock-spring` (for Spring RestTemplate)
 * version-id = `1.4.0`
 
+### Compatibility
+
+| Requirement                | Version                                              |
+|----------------------------|------------------------------------------------------|
+| Java                       | 17+                                                  |
+| JUnit                      | Jupiter 5.x / 6.x                                    |
+| Spring (`-spring` module)  | Spring Framework 7 / Spring Boot 4, Jackson 3        |
+| Pact JVM                   | 4.7.x                                                |
+
 ### Gradle
 
 ```groovy
@@ -310,31 +319,39 @@ uponReceiving(restTemplate.postForEntity(any(URI.class), any(), eq(ShoppingList.
 
 ## Advanced Configuration
 
-### Custom JSON ObjectMapper
+### Custom JSON serialization
 
-You can specify a custom ObjectMapper for serializing request/response bodies for specific providers. This is useful when you need special serialization handling, like custom date formats or naming strategies.
+Request/response bodies are serialized with a `JsonBodySerializer`. By default, `JacksonJsonBodySerializer` uses a
+Jackson 3 `ObjectMapper` that omits null values. You can provide your own serializer per provider, which is useful
+when you need special serialization handling, like custom date formats or naming strategies.
 
 **Kotlin:**
 
 ```kotlin
 import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.JacksonJsonBodySerializer
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
 import io.github.ludorival.pactjvm.mock.spring.serializerAsDefault
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
 import java.time.LocalDate
 
 object MyServicePactConfig : PactConfiguration(
     SpringRestTemplateMockAdapter("my-service", { providerName ->
-        Jackson2ObjectMapperBuilder()
-            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-            .serializerByType(
-                LocalDate::class.java,
-                serializerAsDefault<LocalDate>("2023-01-01")
-            ).build()
+        val fixedDates = SimpleModule().addSerializer(LocalDate::class.java, serializerAsDefault("2023-01-01"))
+        JacksonJsonBodySerializer(
+            JsonMapper.builder()
+                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                .addModule(fixedDates)
+                .build()
+        )
     })
 )
 ```
+
+`JsonBodySerializer` is a functional interface (`(body: Any?) -> ByteArray`), so any JSON library can be plugged in
+by implementing it. Returning `null` for a provider falls back to the default serializer.
 
 ### Deterministic Contracts
 
@@ -359,24 +376,20 @@ For specific fields that are naturally dynamic (like dates or IDs), you can prov
 
 ```kotlin
 import io.github.ludorival.pactjvm.mock.PactConfiguration
+import io.github.ludorival.pactjvm.mock.spring.JacksonJsonBodySerializer
 import io.github.ludorival.pactjvm.mock.spring.SpringRestTemplateMockAdapter
 import io.github.ludorival.pactjvm.mock.spring.serializerAsDefault
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
 import java.time.LocalDateTime
 import java.util.UUID
 
 object MyServicePactConfig : PactConfiguration(
     SpringRestTemplateMockAdapter("my-service", { providerName ->
-        Jackson2ObjectMapperBuilder()
-            .serializerByType(
-                LocalDateTime::class.java,
-                serializerAsDefault<LocalDateTime>("2023-01-01T00:00:00")
-            )
-            .serializerByType(
-                UUID::class.java,
-                serializerAsDefault<UUID>("123e4567-e89b-12d3-a456-426614174000")
-            )
-            .build()
+        val fixedValues = SimpleModule()
+            .addSerializer(LocalDateTime::class.java, serializerAsDefault("2023-01-01T00:00:00"))
+            .addSerializer(UUID::class.java, serializerAsDefault("123e4567-e89b-12d3-a456-426614174000"))
+        JacksonJsonBodySerializer(JsonMapper.builder().addModule(fixedValues).build())
     })
 ) {
     override fun isDeterministic() = true
