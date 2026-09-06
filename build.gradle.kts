@@ -1,4 +1,3 @@
-// Plugin imports and declarations
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jreleaser.model.Active
@@ -10,14 +9,12 @@ plugins {
     id("maven-publish")
 }
 
-// Root project configuration (the git-version plugin registers the `gitVersion` closure as an extra property)
 @Suppress("UNCHECKED_CAST")
 val gitVersion = extra["gitVersion"] as groovy.lang.Closure<String>
 
 group = "io.github.ludorival"
 version = gitVersion().replace(".dirty", "-SNAPSHOT")
 
-// Common configuration for all subprojects
 subprojects {
     group = rootProject.group
     version = rootProject.version
@@ -32,7 +29,6 @@ subprojects {
         mavenCentral()
     }
 
-    // Java configuration
     java {
         withJavadocJar()
         withSourcesJar()
@@ -40,10 +36,8 @@ subprojects {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Task configurations
     tasks.named<Test>("test") {
         useJUnitPlatform {
-            // Run non-contract tests first
             includeTags("!contract-test")
         }
     }
@@ -111,7 +105,6 @@ subprojects {
         }
     }
 
-    // JReleaser configuration
     jreleaser {
         gitRootSearch.set(true)
         project {
@@ -159,7 +152,6 @@ subprojects {
     }
 }
 
-// Repository configuration for all projects
 allprojects {
     repositories {
         mavenCentral()

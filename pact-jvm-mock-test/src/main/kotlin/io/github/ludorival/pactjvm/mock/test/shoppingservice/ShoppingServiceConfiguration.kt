@@ -15,9 +15,6 @@ open class ShoppingServiceConfiguration {
     open fun shoppingServiceJsonCustomizer() = JsonMapperBuilderCustomizer { it.configureForShoppingService() }
 }
 
-/**
- * JSON conventions of the shopping service: snake_case properties, no null values, ISO dates.
- */
 fun JsonMapper.Builder.configureForShoppingService(): JsonMapper.Builder = this
     .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
     .changeDefaultPropertyInclusion { it.withValueInclusion(JsonInclude.Include.NON_NULL) }

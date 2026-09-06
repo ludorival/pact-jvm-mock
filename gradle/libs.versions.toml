@@ -28,7 +28,6 @@ spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-depe
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "spring-boot" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
 jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
-# Version managed by the Spring Boot BOM in pact-jvm-mock-test
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 kotlin-tdd = { module = "io.github.ludorival:kotlin-tdd", version.ref = "kotlin-tdd" }

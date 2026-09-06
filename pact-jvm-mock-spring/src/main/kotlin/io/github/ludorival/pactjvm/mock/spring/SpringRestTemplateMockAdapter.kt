@@ -12,13 +12,6 @@ import java.nio.charset.StandardCharsets
 import io.github.ludorival.pactjvm.mock.*
 import org.springframework.http.*
 
-/**
- * Turns intercepted [RestTemplate] calls into Pact [RequestResponseInteraction]s.
- *
- * @param consumer the consumer name written in the generated pacts.
- * @param serializerByProvider resolves the [JsonBodySerializer] used for a given provider;
- * returning `null` falls back to [JacksonJsonBodySerializer] with its default mapper.
- */
 @Suppress("TooManyFunctions")
 open class SpringRestTemplateMockAdapter(
     private val consumer: String,
@@ -30,9 +23,7 @@ open class SpringRestTemplateMockAdapter(
     private val defaultSerializer: JsonBodySerializer by lazy { JacksonJsonBodySerializer() }
 
     private val uriTemplate by lazy {
-        val uriFactory = DefaultUriBuilderFactory()
-        uriFactory.encodingMode = EncodingMode.URI_COMPONENT // for backwards compatibility..
-        uriFactory
+        DefaultUriBuilderFactory().apply { encodingMode = EncodingMode.URI_COMPONENT }
     }
 
     override fun support(call: Call<*>): Boolean {
@@ -111,18 +102,13 @@ open class SpringRestTemplateMockAdapter(
 
     @Suppress("SpreadOperator")
     private fun <T> Call<T>.getUri(): URI {
-        // usually, the first parameter is the url
-        val url = args[0]
+        val firstArg = args.first()
         val requestEntity = getRequestEntity()
         return when {
             requestEntity != null -> requestEntity.url
-            url != null && url is URI -> url
-            url != null && url is String -> {
-                val args = args.getUriVariables()
-                uriTemplate.expand(url, *args)
-            }
-
-            else -> error("Expected to found an url")
+            firstArg is URI -> firstArg
+            firstArg is String -> uriTemplate.expand(firstArg, *args.getUriVariables())
+            else -> error("Expected to find an url as first argument")
         }
     }
 
