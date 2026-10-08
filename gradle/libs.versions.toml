@@ -9,7 +9,7 @@ mockito = "5.24.0"
 spring = "7.0.9"
 spring-boot = "4.1.1"
 jackson = "3.2.3"
-kotlin-logging = "7.0.14"
+kotlin-logging = "8.0.4"
 kotlin-tdd = "2.3.0"
 diff-match-patch = "1.0"
 
