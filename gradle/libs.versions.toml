@@ -10,7 +10,7 @@ spring = "7.0.10"
 spring-boot = "4.1.2"
 jackson = "3.3.0"
 kotlin-logging = "7.0.14"
-kotlin-tdd = "2.3.1"
+kotlin-tdd = "79acbc5.dirty"
 diff-match-patch = "1.0"
 
 [libraries]
