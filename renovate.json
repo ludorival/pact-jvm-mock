@@ -12,6 +12,13 @@
         "digest"
       ],
       "automerge": true
+    },
+    {
+      "description": "Ignore la version fantôme 79acbc5.dirty publiée par erreur sur Maven Central",
+      "matchPackageNames": [
+        "io.github.ludorival:kotlin-tdd"
+      ],
+      "allowedVersions": "/^\\d+\\.\\d+\\.\\d+$/"
     }
   ]
 }
